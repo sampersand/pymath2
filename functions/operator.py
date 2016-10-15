@@ -1,4 +1,4 @@
-from pymath2.functions.unseededfunction import UnseededFunction
+from pymath2.functions import UnseededFunction
 class Operator(UnseededFunction):
 	def __init__(self, arg):
 		self.arg = arg

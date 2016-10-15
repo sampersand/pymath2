@@ -1,4 +1,4 @@
-class obj():
+class MathObj():
 	def __init__(self) -> None:
 		pass
 

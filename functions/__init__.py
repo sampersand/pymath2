@@ -1,5 +1,5 @@
-from pymath2.functions.seeded_function import seeded_function
-from pymath2.functions.oper import oper #shiuldnt be in al
 opers = {}
-from pymath2.functions.unseeded_function import unseeded_function
-__all__ = ('seeded_function', 'unseeded_function')
+from pymath2.functions.seeded_function import SeededFunction
+from pymath2.functions.unseeded_function import UnseededFunction
+from pymath2.functions.operator import Operator
+__all__ = ('SeededFunction', 'UnseededFunction', 'Operator')

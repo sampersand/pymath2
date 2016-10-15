@@ -1,9 +1,8 @@
 from typing import Any
-from pymath2 import functions
-from pymath2.objs.named_valued_obj import named_valued_obj
-from pymath2.objs.operable import operable
-class seeded_function(named_valued_obj, operable):
-	def __init__(self, uns_func: 'unseeded_function', args: tuple) -> None:
+from pymath2.objs.named_valued_obj import NamedValuedObj
+from pymath2.objs.operable import Operable
+class SeededFunction(NamedValuedObj, Operable):
+	def __init__(self, uns_func: 'UnSeededFunction', args: tuple) -> None:
 		super().__init__()
 		self._func = uns_func
 		self.args = args

@@ -1,5 +1,5 @@
 from pymath2 import NotDefinedError
-class _undefined():
+class UndefinedClass():
 	def __str__(self):
 		return 'Undefined'
 	def __add__(self, other): return self
@@ -48,7 +48,7 @@ class _undefined():
 	def __complex__(self): raise NotDefinedError('__complex__')
 
 
-Undefined = _undefined()
+Undefined = UndefinedClass()
 
 
 

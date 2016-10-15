@@ -1,10 +1,9 @@
 from pymath2 import Undefined
-from . import obj
-class named_obj(obj):
+from pymath2.objs import MathObj
+class NamedObj(MathObj):
 	def __init__(self, name: str = Undefined) -> None:
 		super().__init__()
 		self._name = name
-
 
 	def name() -> dict:
 		def fget(self) -> (str, Undefined):

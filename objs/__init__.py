@@ -1,6 +1,6 @@
-from pymath2.objs.obj import obj
-from pymath2.objs.operable import operable
-from pymath2.objs.named_obj import named_obj
-from pymath2.objs.valued_obj import valued_obj
-from pymath2.objs.named_valued_obj import named_valued_obj
-__all__ = ('obj', 'named_obj', 'valued_obj', 'named_valued_obj', 'operable')
+from pymath2.objs.math_obj import MathObj
+from pymath2.objs.operable import Operable
+from pymath2.objs.named_obj import NamedObj
+from pymath2.objs.valued_obj import ValuedObj
+from pymath2.objs.named_valued_obj import NamedValuedObj
+__all__ = ('MathObj', 'NamedObj', 'ValuedObj', 'NamedValuedObj', 'Operable')
