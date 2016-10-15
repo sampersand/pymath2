@@ -4,6 +4,7 @@ from .seeded_operator import SeededOperator
 from pymath2.objs.named_obj import NamedObj
 class Operator(UnseededFunction, NamedObj):
 	seeded_type = SeededOperator
+	is_inverted = False
 	def __init__(self, name: str, priority: int, callable_: Callable) -> None:
 		UnseededFunction.__init__(self, callable_)
 		NamedObj.__init__(self, name)
@@ -23,6 +24,7 @@ class Operator(UnseededFunction, NamedObj):
 	def is_lower_precedence(self, other: UnseededFunction) -> bool:
 		pass
 class InvertedOperator(Operator):
+	is_inverted = True
 	def __init__(self, normal_operator: Operator) -> None:
 		pass
 		# super().__init__(normal_operator.name, normal_operator.priority, normal_operator.)
