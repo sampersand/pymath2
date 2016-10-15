@@ -1,7 +1,7 @@
 from typing import Any
 from pymath2 import Undefined
-from pymath2.objs.named_obj import NamedObj
-from pymath2.objs.valued_obj import ValuedObj
+from .named_obj import NamedObj
+from .valued_obj import ValuedObj
 class NamedValuedObj(NamedObj, ValuedObj):
 	def __init__(self, name: str = Undefined, value: Any = Undefined):
 		NamedObj.__init__(self, name)

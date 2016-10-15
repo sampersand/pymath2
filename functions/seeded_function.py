@@ -9,7 +9,7 @@ class SeededFunction(NamedValuedObj, Operable):
 
 	@property
 	def value(self) -> Any:
-		return self._func._func(*self.args)
+		return self.scrub(self._func._func(*self.args))
 
 	@property
 	def hasvalue(self) -> any:

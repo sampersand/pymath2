@@ -1,4 +1,4 @@
-from pymath2 import NotDefinedError
+from pymath2.exceptions.not_defined_error import NotDefinedError
 class UndefinedClass():
 	def __str__(self):
 		return 'Undefined'
@@ -47,7 +47,9 @@ class UndefinedClass():
 	def __int__(self): raise NotDefinedError('__int__')
 	def __complex__(self): raise NotDefinedError('__complex__')
 
-
+	@property
+	def hasvalue(self):
+		return False
 Undefined = UndefinedClass()
 
 

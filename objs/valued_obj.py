@@ -1,6 +1,6 @@
 from typing import Any
 from pymath2 import Undefined
-from pymath2.objs import MathObj
+from .math_obj import MathObj
 class ValuedObj(MathObj):
 	def __init__(self, value: Any = Undefined) -> None:
 		MathObj.__init__(self)
@@ -24,3 +24,14 @@ class ValuedObj(MathObj):
 
 	def __repr__(self) -> str:
 		return '{}({!r})'.format(type(self).__qualname__, self.value)
+
+	def __abs__(self):
+		return abs(float(self))
+	def __bool__(self):
+		return bool(self.value)
+	def __int__(self):
+		return int(self.value)
+	def __float__(self):
+		return float(self.value)
+	def __complex__(self):
+		return complex(self.value)

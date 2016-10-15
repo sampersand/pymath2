@@ -1,8 +1,9 @@
 from typing import Callable
 from pymath2 import Undefined
-from pymath2.functions import SeededFunction
-from pymath2.objs import NamedObj
+from pymath2.objs.named_obj import NamedObj
+from .seeded_function import SeededFunction
 class UnseededFunction(NamedObj):
+	seeded_type = SeededFunction
 	def __init__(self,
 				 inp_func: Callable,
 				 name: str = Undefined,
@@ -13,15 +14,14 @@ class UnseededFunction(NamedObj):
 		self._func = inp_func
 		self.args_str = args_str
 		self.body_str = body_str
-
 	@property
 	def arg_len(self) -> int:
 		return self._func.__code__.co_argcount
 
-	def __call__(self, *args) -> SeededFunction:
+	def __call__(self, *args) -> seeded_type:
 		if __debug__:
 			assert len(args) == self.arg_len, 'length mismatch'
-		return SeededFunction(self, args)
+		return self.seeded_type(self, tuple(self.scrub(arg) for arg in args))
 
 	def __str__(self) -> str:
 		return '{}({}) = {}'.format(self.name, self.args_str, self.body_str)
