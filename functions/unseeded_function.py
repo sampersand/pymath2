@@ -2,7 +2,7 @@ from typing import Callable
 from pymath2 import Undefined
 from pymath2.functions.seeded_function import seeded_function
 from pymath2.objs.named_obj import named_obj
-class unseeded_function(named_obj):
+class UnseededFunction(named_obj):
 	def __init__(self,
 				 inp_func: Callable,
 				 name: str = Undefined,

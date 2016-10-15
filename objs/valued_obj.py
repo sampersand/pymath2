@@ -1,6 +1,6 @@
 from typing import Any
 from pymath2 import Undefined
-from pymath2.objs.obj import obj
+from . import obj
 class valued_obj(obj):
 	def __init__(self, value: Any = Undefined) -> None:
 		obj.__init__(self)

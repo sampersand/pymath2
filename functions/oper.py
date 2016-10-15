@@ -1,7 +1,6 @@
-from pymath2.functions.unseeded_function import unseeded_function
-class oper(unseeded_function):
+from pymath2.functions.unseededfunction import UnseededFunction
+class Operator(UnseededFunction):
 	def __init__(self, arg):
-		super(oper, self).__init__()
 		self.arg = arg
 
 opers = {

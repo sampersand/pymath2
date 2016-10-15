@@ -1,9 +1,9 @@
 import inspect
-from pymath2.objs.obj import obj
+from . import obj
 from pymath2.functions import opers
 def _curr_func_name():
 	return inspect.stack()[1][3]
 
-class operable(object):
+class operable(obj):
 	def __add__(self, other):
 		return opers[_curr_func_name()](self, other)

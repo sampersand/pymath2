@@ -1,4 +1,4 @@
-from pymath2.exceptions import NotDefinedError
+from pymath2 import NotDefinedError
 class _undefined():
 	def __str__(self):
 		return 'Undefined'

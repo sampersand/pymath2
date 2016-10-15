@@ -1,5 +1,5 @@
 from pymath2 import Undefined
-from pymath2.objs.obj import obj
+from . import obj
 class named_obj(obj):
 	def __init__(self, name: str = Undefined) -> None:
 		super().__init__()
