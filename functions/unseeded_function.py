@@ -11,18 +11,18 @@ class UnseededFunction(NamedObj):
 	# 			 body_str: str = Undefined,
 	# 	) -> None:
 	def __init__(self,
-				 base_func: Callable,
+				 wrapped_function: Callable,
 				 name: str = Undefined,
 				 args: str = Undefined,
 				 body: str = Undefined,
 		) -> None:
 		super().__init__(name)
-		self.base_func = base_func
+		self.wrapped_function = wrapped_function
 		self.args_str = args
 		self.body_str = body
 	@property
 	def req_arg_len(self) -> int:
-		return self.base_func.__code__.co_argcount
+		return self.wrapped_function.__code__.co_argcount
 
 	def __call__(self, *args) -> seeded_type:
 		if __debug__:
@@ -34,6 +34,6 @@ class UnseededFunction(NamedObj):
 			self.body_str)
 
 	def __repr__(self) -> str:
-		return '{}({!r}{})'.format(type(self).__qualname__, self.base_func,
+		return '{}({!r}{})'.format(type(self).__qualname__, self.wrapped_function,
 									repr(self.name) if self.hasname else '')
 		

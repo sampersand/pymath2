@@ -5,8 +5,8 @@ from pymath2.objs.named_obj import NamedObj
 class Operator(UnseededFunction, NamedObj):
 	seeded_type = SeededOperator
 	is_inverted = False
-	def __init__(self, name: str, priority: int, callable_: Callable) -> None:
-		UnseededFunction.__init__(self, callable_)
+	def __init__(self, name: str, priority: int, wrapped_function: Callable) -> None:
+		UnseededFunction.__init__(self, wrapped_function)
 		NamedObj.__init__(self, name)
 		self.priority = priority
 	@property
@@ -19,14 +19,14 @@ class Operator(UnseededFunction, NamedObj):
 		return self.name
 
 	def __repr__(self) -> str:
-		return '{}({!r}, {!r}, {!r})'.format(type(self).__qualname__, self.name, self.priority, self.callable_)
+		return '{}({!r}, {!r}, {!r})'.format(type(self).__qualname__, self.name, self.priority, self.wrapped_function)
 
 	def is_lower_precedence(self, other: UnseededFunction) -> bool:
 		pass
+
 class InvertedOperator(Operator):
 	is_inverted = True
 	def __init__(self, normal_operator: Operator) -> None:
-		pass
 		# super().__init__(normal_operator.name, normal_operator.priority, normal_operator.)
 
 opers = {
