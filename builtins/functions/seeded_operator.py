@@ -1,5 +1,6 @@
 from typing import Any
 from pymath2.builtins.objs.math_obj import MathObj
+from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 from .seeded_function import SeededFunction
 from pymath2.builtins.objs.operable import Operable
@@ -37,4 +38,27 @@ class SeededOperator(SeededFunction):
 			from pymath2.builtins.exceptions.pymath2_error import PyMath2Error
 			raise PyMath2Error('How does an operator have {} required arguments?'.
 								format(self.unseeded_base_object.req_arg_len))
+
+	def deriv(self, du: Variable) -> 'SeededOperator':
+		return self.unseeded_base_object.deriv(du, *self.args)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -24,3 +24,5 @@ class SeededFunction(NamedValuedObj, Operable):
 			return str(self.value)
 		return '{}({})'.format(self.name, ', '.join(str(x) for x in self.args))
 
+	def isconst(self, du):
+		return self.hasvalue #maybe something with du?

@@ -14,6 +14,9 @@ class ValuedObj(MathObj):
 		return locals()
 	value = property(**value())
 
+	def isconst(self, du):
+		return self != du
+
 	@property
 	def hasvalue(self) -> bool:
 		return self.value is not Undefined
@@ -35,3 +38,5 @@ class ValuedObj(MathObj):
 	def __complex__(self) -> complex:
 		return complex(self.value)
 
+	def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
+		return Undefined
