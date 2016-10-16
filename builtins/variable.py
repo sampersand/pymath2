@@ -6,5 +6,5 @@ class Variable(NamedValuedObj, Operable):
 	def __init__(self, name: str = Undefined, value: Any = Undefined) -> None:
 		super().__init__(name = name, value = value)
 		
-	def deriv(self, du: 'Variable') -> (0, 1):
-		return int(not self.isconst(du))
+	async def deriv(self, du: 'Variable') -> (0, 1):
+		return int(not await self.isconst(du))

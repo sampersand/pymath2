@@ -14,7 +14,7 @@ class SeededMathFunction(SeededFunction):
 
 	@property
 	def value(self) -> Any:
-		if any(arg is Undefined or hasattr(arg, 'hasvalue') and not arg.hasvalue for arg in self.args):
+		if any(arg is Undefined or hasattr(arg, 'hasvalue') and not await arg.hasvalue for arg in self.args):
 			return Undefined
 		return super().value
 

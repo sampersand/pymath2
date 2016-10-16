@@ -12,17 +12,17 @@ class SeededFunction(NamedValuedObj, Operable):
 		return self.scrub(self.unseeded_base_object.wrapped_function(*self.args))
 
 	@property
-	def hasvalue(self) -> Any:
-		return self.value.hasvalue
+	async def hasvalue(self) -> Any:
+		return await self.value.hasvalue
 
 	@property
 	def name(self) -> str:
 		return self.unseeded_base_object.name
 
 	def __str__(self) -> str:
-		if self.hasvalue:
+		if await self.hasvalue:
 			return str(self.value)
 		return '{}({})'.format(self.name, ', '.join(str(x) for x in self.args))
 
-	def isconst(self, du):
-		return self.hasvalue #maybe something with du?
+	async def isconst(self, du):
+		return await self.hasvalue #maybe something with du?

@@ -2,8 +2,7 @@ from typing import Any
 class UndefinedClass():
 	def __str__(self) -> str: return 'Undefined'
 	def __repr__(self) -> str: return '{}()'.format(type(self).__qualname__)
-	@property
-	def value(self) -> 'self': return self
+
 	def __add__(self, other: Any) -> 'self': return self
 	def __sub__(self, other: Any) -> 'self': return self
 	def __mul__(self, other: Any) -> 'self': return self
@@ -49,9 +48,13 @@ class UndefinedClass():
 	# def __int__(self): raise AttributeError("Cannot take the f__int__")
 	# def __complex__(self): raise AttributeError("Cannot take the f__complex__")
 
+	# @property
+	# async def hasvalue(self) -> bool:
+	# 	return False
 	@property
-	def hasvalue(self) -> bool:
-		return False
+	def value(self) -> 'self':
+		return self
+
 Undefined = UndefinedClass()
 
 
