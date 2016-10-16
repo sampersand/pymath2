@@ -9,15 +9,15 @@ class Future():
 	# 	return await self._future_func()
 
 	@property
-	def hasval(self) -> bool:
-		return hasattr(self, '_val')
+	def hasvalue(self) -> bool:
+		return hasattr(self, '_value')
 	@property
-	def val(self) -> Any:
-		if not self.hasval:
-			self._val = self._future_func()
-		return self._val
+	def value(self) -> Any:
+		if not self.hasvalue:
+			self._value = self._future_func()
+		return self._value
 
 	def __str__(self) -> str:
-		# if not self.hasval:
+		# if not self.hasvalue:
 		# 	return super().__str__()
-		return str(self.val)
+		return str(self.value)
