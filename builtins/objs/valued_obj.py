@@ -14,11 +14,11 @@ class ValuedObj(MathObj):
 		return locals()
 	value = property(**value())
 
-	async def isconst(self, du):
+	def isconst(self, du):
 		return self != du
 
 	@property
-	async def hasvalue(self) -> bool:
+	def hasvalue(self) -> bool:
 		return self.value is not Undefined
 
 	def __str__(self) -> str:
@@ -38,5 +38,5 @@ class ValuedObj(MathObj):
 	def __complex__(self) -> complex:
 		return complex(self.value)
 
-	async def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
+	def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
 		return Undefined

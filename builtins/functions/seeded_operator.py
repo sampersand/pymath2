@@ -28,7 +28,7 @@ class SeededOperator(SeededFunction):
 		return '{} {} {}'.format(l, self.name, r)
 
 	def __str__(self) -> str:
-		if await self.hasvalue:
+		if self.hasvalue:
 			return str(self.value)
 		elif self.unseeded_base_object.req_arg_len == 1:
 			return '{}{}'.format(self.arg, self.possibly_surround_in_parens(self.args[0]))
@@ -39,8 +39,8 @@ class SeededOperator(SeededFunction):
 			raise PyMath2Error('How does an operator have {} required arguments?'.
 								format(self.unseeded_base_object.req_arg_len))
 
-	async def deriv(self, du: Variable) -> 'SeededOperator':
-		return await self.unseeded_base_object.deriv(du, *self.args)
+	def deriv(self, du: Variable) -> 'SeededOperator':
+		return self.unseeded_base_object.deriv(du, *self.args)
 
 
 

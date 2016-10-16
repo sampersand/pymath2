@@ -1,3 +1,4 @@
+from .utils.future import Future
 from .builtins.undefined import Undefined
 from .builtins.constant import Constant as const
 from .builtins.variable import Variable as var

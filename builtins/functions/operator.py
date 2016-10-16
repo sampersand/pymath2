@@ -2,7 +2,7 @@ from asyncio import ensure_future
 
 from typing import Callable
 
-from pymath2 import Undefined
+from pymath2 import Undefined, Future
 from .unseeded_function import UnseededFunction
 from .seeded_operator import SeededOperator
 from pymath2.builtins.objs.named_obj import NamedObj
@@ -30,7 +30,7 @@ class Operator(UnseededFunction, NamedObj):
 			raise AttributeError("'{}' needs to have the attriubute 'priority'".format(type(other)))
 		return self.priority < other.priority
 
-	async def deriv(self, du, *args):
+	def deriv(self, du, *args):
 		return Undefined
 
 	# def simplify(self, *args):
@@ -48,56 +48,52 @@ class AddSubOperator(Operator):
 
 		super().__init__(name, 3, wrapped_function)
 
-	async def deriv(self, du, l, r):
-		ld = ensure_future(l.deriv(du))
-		rd = ensure_future(r.deriv(du))
+	def deriv(self, du, l, r) -> Future:
 		if self.name == '+':
-			return await ld + await rd
-		return await ld - await rd
+			return Future(lambda: l.deriv(du).val + r.deriv(du).val)
+		return Future(lambda: l.deriv(du).val - r.deriv(du).val)
 
 class MulOperator(Operator):
 	def __init__(self):
 		super().__init__('*', 2, lambda l, r: l.value * r.value)
 
-	async def deriv(self, du, l, r):
-		ld = ensure_future(l.deriv(du))
-		rd = ensure_future(r.deriv(du))
-		return await ld * r + l * await rd
+	def deriv(self, du, l, r) -> Future:
+		return Future(lambda: l.deriv(du).val * r + l * r.deriv(du).val)
 
 class TrueDivOperator(Operator):
 	def __init__(self):
 		super().__init__('/', 2, lambda l, r: l.value / r.value)
 
-	async def deriv(self, du, n, d):
-		nd = ensure_future(n.deriv(du))
-		dd = ensure_future(d.deriv(du))
-		return (d * await nd - n * await dd) / d ** 2
+	# def deriv(self, du, n, d):
+	# 	nd = ensure_future(n.deriv(du))
+	# 	dd = ensure_future(d.deriv(du))
+	# 	return (d * await nd - n * await dd) / d ** 2
 
 class PowOperator(Operator):
 	def __init__(self):
 		super().__init__('**', 0, lambda b, p: b.value ** p.value)
 
-	async def deriv(self, du, b, p):
-		isbconst = ensure_future(b.isconst(du))
-		ispconst = ensure_future(p.isconst(du))
-		isbconst = await isbconst
-		ispconst = await ispconst
-		if not isbconst and not ispconst: return 0
+	# def deriv(self, du, b, p):
+	# 	isbconst = ensure_future(b.isconst(du))
+	# 	ispconst = ensure_future(p.isconst(du))
+	# 	isbconst = await isbconst
+	# 	ispconst = await ispconst
+	# 	if not isbconst and not ispconst: return 0
 
-		if not isbconst:
-			bd = ensure_future(b.deriv(du))
-		if not ispconst:
-			pd = ensure_future(p.deriv(du))
-			from pymath2.extensions.functions import ln
-			lnb = ln(b)
+	# 	if not isbconst:
+	# 		bd = ensure_future(b.deriv(du))
+	# 	if not ispconst:
+	# 		pd = ensure_future(p.deriv(du))
+	# 		from pymath2.extensions.functions import ln
+	# 		lnb = ln(b)
 
-		if not isbconst and ispconst:
-			return p * b ** (p - 1) * await bd
-		if isbconst and not ispconst:
-			return b ** p * lnb * await pd
-		if __debug__:
-			assert isbconst and ispconst #only option left
-		return b ** p * (await bd * p / b + await pd * lnb)
+	# 	if not isbconst and ispconst:
+	# 		return p * b ** (p - 1) * await bd
+	# 	if isbconst and not ispconst:
+	# 		return b ** p * lnb * await pd
+	# 	if __debug__:
+	# 		assert isbconst and ispconst #only option left
+	# 	return b ** p * (await bd * p / b + await pd * lnb)
 
 
 class InvertedOperator(Operator):
@@ -114,8 +110,8 @@ class InvertedOperator(Operator):
 	def wrapped_function(self, value) -> None:
 		pass
 
-	async def deriv(self, du, *args):
-		return await self.normal_operator.deriv(du, *args[::-1]) #haha! that's how you invert it
+	def deriv(self, du, *args):
+		return self.normal_operator.deriv(du, *args[::-1]) #haha! that's how you invert it
 
 opers = {
 	'__add__': AddSubOperator('+'),

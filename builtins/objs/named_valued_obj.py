@@ -9,7 +9,7 @@ class NamedValuedObj(NamedObj, ValuedObj):
 		ValuedObj.__init__(self, value)
 
 	def __str__(self) -> str:
-		return ValuedObj.__str__(self) if asyncio.wait(self.hasvalue) else NamedObj.__str__(self)
+		return ValuedObj.__str__(self) if self.hasvalue else NamedObj.__str__(self)
 
 	def __repr__(self) -> str:
 		return '{}({!r}, {!r})'.format(type(self).__qualname__,

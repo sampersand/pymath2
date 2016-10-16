@@ -48,9 +48,9 @@ class UndefinedClass():
 	# def __int__(self): raise AttributeError("Cannot take the f__int__")
 	# def __complex__(self): raise AttributeError("Cannot take the f__complex__")
 
-	# @property
-	# async def hasvalue(self) -> bool:
-	# 	return False
+	@property
+	def hasvalue(self) -> bool:
+		return False
 	@property
 	def value(self) -> 'self':
 		return self
