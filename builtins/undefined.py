@@ -48,6 +48,8 @@ class UndefinedClass():
 	# def __int__(self): raise AttributeError("Cannot take the f__int__")
 	# def __complex__(self): raise AttributeError("Cannot take the f__complex__")
 
+	def __await__(self) -> 'self': return self
+
 	@property
 	def hasvalue(self) -> bool:
 		return False

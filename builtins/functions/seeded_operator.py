@@ -39,8 +39,8 @@ class SeededOperator(SeededFunction):
 			raise PyMath2Error('How does an operator have {} required arguments?'.
 								format(self.unseeded_base_object.req_arg_len))
 
-	def deriv(self, du: Variable) -> 'SeededOperator':
-		return self.unseeded_base_object.deriv(du, *self.args)
+	async def deriv(self, du: Variable) -> 'ValuedObj':
+		return await self.unseeded_base_object.deriv(du, *self.args)
 
 
 

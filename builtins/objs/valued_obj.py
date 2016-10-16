@@ -38,5 +38,5 @@ class ValuedObj(MathObj):
 	def __complex__(self) -> complex:
 		return complex(self.value)
 
-	def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
+	async def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
 		return Undefined
