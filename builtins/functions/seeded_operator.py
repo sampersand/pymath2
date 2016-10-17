@@ -32,7 +32,7 @@ class SeededOperator(SeededFunction):
 		if self.hasvalue:
 			return str(self.value)
 		elif self.unseeded_base_object.req_arg_len == 1:
-			return '{}{}'.format(self.arg, self.possibly_surround_in_parens(self.args[0]))
+			return '{}{}'.format(self.name, self.possibly_surround_in_parens(self.args[0]))
 		elif self.unseeded_base_object.req_arg_len == 2:
 			return self._bool_oper_str()
 		else:

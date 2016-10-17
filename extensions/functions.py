@@ -22,7 +22,7 @@ class SeededMathFunction(SeededFunction):
 
 	async def deriv(self, du: Variable) -> SeededFunction:
 		if __debug__:
-			assert self.unseeded_base_object.derivative is not Undefined
+			assert self.unseeded_base_object.derivative is not Undefined, 'No known way to take the derivative of ' + str(self)
 		return await self.unseeded_base_object.derivative(*self.args, du)
 
 class MathFunction(UnseededFunction, FancyText):
@@ -56,25 +56,41 @@ csc = MathFunction('csc', lambda a: 1 / math.sin(a), (Undefined, 'x'), (Undefine
 sec = MathFunction('sec', lambda a: 1 / math.cos(a), (Undefined, 'x'), (Undefined, '1/cos(x)'))
 cot = MathFunction('cot', lambda a: 1 / math.tan(a), (Undefined, 'x'), (Undefined, '1/tan(x)'))
 
-import asyncio
-sin.derivative = asyncio.coroutine(lambda a, u: cos(a) * await a.deriv(u))
-cos.derivative = asyncio.coroutine(lambda a, u: -sin(a))
-tan.derivative = asyncio.coroutine(lambda a, u: sec(a) ** 2)
-csc.derivative = asyncio.coroutine(lambda a, u: -csc(a) * cot(a))
-sec.derivative = asyncio.coroutine(lambda a, u: sec(a) * tan(a))
-cot.derivative = asyncio.coroutine(lambda a, u: -csc(a) ** 2)
-
-
-
 ln = MathFunction('ln', math.log)
 log = MathFunction(('log', 'log₁₀'), math.log10)
 log2 = MathFunction(('log2', 'log₂'), math.log2)
-
 
 sqrt = MathFunction(('sqrt', '√'), math.sqrt)
 fact = MathFunction('!', math.factorial)
 gamma = MathFunction(('gamma', 'Γ'), math.gamma)
 Γ = gamma
+
+async def derive(a, du):
+	return (cos(a)) * (await a.deriv(du))
+	# cosa = cos(a)
+	# aderiv = await a.deriv(du)
+	# cosa_aderiv = cosa * aderiv
+	# return cosa_aderiv
+	# return cos(a) * await a.deriv(du)
+sin.derivative = derive
+
+async def derive(a, du): return -sin(a) * await a.deriv(du)
+cos.derivative = derive
+
+async def derive(a, du): return sec(a) ** 2 * await a.deriv(du)
+tan.derivative = derive
+
+async def derive(a, du): return -csc(a) * cot(a) * await a.deriv(du)
+csc.derivative = derive
+
+async def derive(a, du): return sec(a) * tan(a) * await a.deriv(du)
+sec.derivative = derive
+
+async def derive(a, du): return -csc(a) ** 2 * await a.deriv(du)
+cot.derivative = derive
+
+async def deriv(a, du): return await a.deriv(du) / a
+ln.derivative = derive
 
 
 __all__ = tuple(x for x in list(locals()) if x[0] != '_' and type(x) != type)

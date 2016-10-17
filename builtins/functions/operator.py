@@ -149,9 +149,9 @@ opers = {
 	'__le__': Operator('≤', 8, lambda l, r: l.value <= r.value),
 	'__gt__': Operator('≥', 8, lambda l, r: l.value >= r.value),
 
-	'__neg__': Operator('-', 1, lambda x: -x),
-	'__pos__': Operator('+', 1, lambda x: +x),
-	'__invert__': Operator('~', 1, lambda x: ~x),
+	'__neg__': Operator('-', 1, lambda x: -x.value),
+	'__pos__': Operator('+', 1, lambda x: +x.value),
+	'__invert__': Operator('~', 1, lambda x: ~x.value),
 
 }
 opers.update({

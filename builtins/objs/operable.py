@@ -1,9 +1,12 @@
 from typing import Any
+from pymath2 import Undefined
 import inspect
 from .math_obj import MathObj
 class Operable(MathObj):
-	def _get_oper(self, other: Any):
+	def _get_oper(self, other: Any = Undefined):
 		from pymath2.builtins.functions.operator import opers
+		if other is Undefined:
+			return opers[inspect.stack()[1][3]](self)
 		return opers[inspect.stack()[1][3]](self, other)
 	def __add__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
 	def __sub__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
@@ -28,10 +31,10 @@ class Operable(MathObj):
 	def __le__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
 	def __gt__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
 
-	def __abs__(self) -> 'SeededOperator': return self._get_oper(other)
-	def __neg__(self) -> 'SeededOperator': return self._get_oper(other)
-	def __pos__(self) -> 'SeededOperator': return self._get_oper(other)
-	def __invert__(self) -> 'SeededOperator': return self._get_oper(other)
+	def __abs__(self) -> 'SeededOperator': return self._get_oper()
+	def __neg__(self) -> 'SeededOperator': return self._get_oper()
+	def __pos__(self) -> 'SeededOperator': return self._get_oper()
+	def __invert__(self) -> 'SeededOperator': return self._get_oper()
 
 	def __and__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
 	def __or__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
