@@ -17,7 +17,8 @@ class MathConstant(Constant, NamedObj, FancyText):
 	def __repr__(self) -> str:
 		return '{}({!r}, {!r}{}'.format(type(self).__qualname, self.name, self.value,
 			'' if not hasattr(self.fancy, 'name') else ', ' + repr(self.fancy.name))
-pi = MathConstant(('pi', 'π'), math.pi)
+pi = MathConstant(('pi', 'pi'), math.pi)
+# pi = MathConstant(('pi', 'π'), math.pi)
 e = MathConstant('e', math.e)
 i = MathConstant('i', 1j)
 golden_ratio = MathConstant(('phi','φ'), (1 + math.sqrt(5)) / 2, )

@@ -4,6 +4,7 @@ from typing import Callable
 
 from .fancy_text import FancyText
 from pymath2 import Undefined
+from pymath2.builtins.variable import Variable
 from pymath2.builtins.functions.unseeded_function import UnseededFunction
 from pymath2.builtins.functions.seeded_function import SeededFunction
 
@@ -18,6 +19,12 @@ class SeededMathFunction(SeededFunction):
 			return Undefined
 		return super().value
 
+
+	async def deriv(self, du: Variable) -> SeededFunction:
+		if __debug__:
+			assert self.unseeded_base_object.derivative is not Undefined
+		return await self.unseeded_base_object.derivative(*self.args, du)
+
 class MathFunction(UnseededFunction, FancyText):
 	seeded_type = SeededMathFunction
 	def __init__(self,
@@ -25,12 +32,14 @@ class MathFunction(UnseededFunction, FancyText):
 				 wrapped_function: Callable,
 				 args_str: [str] + FancyText.fancy.types = Undefined,
 				 body_str: [str] + FancyText.fancy.types = Undefined,
-				 req_arg_len: int = 1) -> None:
+				 req_arg_len: int = 1,
+				 derivative: SeededFunction = Undefined) -> None:
 
 		FancyText.__init__(self)
 		UnseededFunction.__init__(self, wrapped_function, self.fancy.process('name', name),
 				self.fancy.process('args_str', args_str), self.fancy.process('body_str', body_str))
 		self._req_arg_len = req_arg_len
+		self.derivative = derivative
 		if __debug__:
 			assert bool(args_str) == bool(body_str), 'cannot pass args and not a body!'
 	@property
@@ -47,9 +56,20 @@ csc = MathFunction('csc', lambda a: 1 / math.sin(a), (Undefined, 'x'), (Undefine
 sec = MathFunction('sec', lambda a: 1 / math.cos(a), (Undefined, 'x'), (Undefined, '1/cos(x)'))
 cot = MathFunction('cot', lambda a: 1 / math.tan(a), (Undefined, 'x'), (Undefined, '1/tan(x)'))
 
+import asyncio
+sin.derivative = asyncio.coroutine(lambda a, u: cos(a) * await a.deriv(u))
+cos.derivative = asyncio.coroutine(lambda a, u: -sin(a))
+tan.derivative = asyncio.coroutine(lambda a, u: sec(a) ** 2)
+csc.derivative = asyncio.coroutine(lambda a, u: -csc(a) * cot(a))
+sec.derivative = asyncio.coroutine(lambda a, u: sec(a) * tan(a))
+cot.derivative = asyncio.coroutine(lambda a, u: -csc(a) ** 2)
+
+
+
 ln = MathFunction('ln', math.log)
 log = MathFunction(('log', 'log₁₀'), math.log10)
 log2 = MathFunction(('log2', 'log₂'), math.log2)
+
 
 sqrt = MathFunction(('sqrt', '√'), math.sqrt)
 fact = MathFunction('!', math.factorial)

@@ -57,6 +57,7 @@ class UndefinedClass():
 	def value(self) -> 'self':
 		return self
 
+	async def deriv(self, du) -> 'self': return self
 Undefined = UndefinedClass()
 
 
