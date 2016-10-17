@@ -57,5 +57,4 @@ gamma = MathFunction(('gamma', 'Γ'), math.gamma)
 Γ = gamma
 
 
-
 __all__ = tuple(x for x in list(locals()) if x[0] != '_' and type(x) != type)

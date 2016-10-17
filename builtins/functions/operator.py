@@ -3,8 +3,10 @@ from asyncio import ensure_future
 from typing import Callable
 
 from pymath2 import Undefined
+from pymath2.builtins.variable import Variable
 from .unseeded_function import UnseededFunction
 from .seeded_operator import SeededOperator
+from pymath2.builtins.objs.valued_obj import ValuedObj
 from pymath2.builtins.objs.named_obj import NamedObj
 class Operator(UnseededFunction, NamedObj):
 	seeded_type = SeededOperator
@@ -30,7 +32,7 @@ class Operator(UnseededFunction, NamedObj):
 			raise AttributeError("'{}' needs to have the attriubute 'priority'".format(type(other)))
 		return self.priority < other.priority
 
-	async def deriv(self, du, *args):
+	async def deriv(self, du: Variable, *args: (ValuedObj, )) -> ('ValuedObj', Undefined):
 		return Undefined
 
 	# def simplify(self, *args):
@@ -49,10 +51,10 @@ class AddSubOperator(Operator):
 		super().__init__(name, 3, wrapped_function)
 
 	@property
-	def _is_plus(self):
+	def _is_plus(self) -> bool:
 		return self.name == '+'
 
-	async def deriv(self, du, l, r):
+	async def deriv(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
 
 		ld = ensure_future(l.deriv(du))
 		rd = ensure_future(r.deriv(du))
@@ -62,28 +64,28 @@ class AddSubOperator(Operator):
 		return await ld - await rd
 
 class MulOperator(Operator):
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__('*', 2, lambda l, r: l.value * r.value)
 
-	async def deriv(self, du, l, r):
+	async def deriv(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
 		ld = ensure_future(l.deriv(du))
 		rd = ensure_future(r.deriv(du))
 		return await ld * r + l * await rd
 
 class TrueDivOperator(Operator):
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__('/', 2, lambda l, r: l.value / r.value)
 
-	async def deriv(self, du, n, d):
+	async def deriv(self, du: Variable, n: ValuedObj, d: ValuedObj) -> (ValuedObj, Undefined):
 		nd = ensure_future(n.deriv(du))
 		dd = ensure_future(d.deriv(du))
 		return (d * await nd - n * await dd) / d ** 2
 
 class PowOperator(Operator):
-	def __init__(self):
+	def __init__(self) -> None:
 		super().__init__('**', 0, lambda b, p: b.value ** p.value)
 
-	async def deriv(self, du, b, p):
+	async def deriv(self, du: Variable, b: ValuedObj, p: ValuedObj) -> (ValuedObj, Undefined):
 		bc = b.isconst(du)
 		pc = p.isconst(du)
 		# bc = ensure_future(b.isconst(du))
@@ -121,7 +123,7 @@ class InvertedOperator(Operator):
 	def wrapped_function(self, value) -> None:
 		pass
 
-	async def deriv(self, du, *args):
+	async def deriv(self, du: Variable, *args: [ValuedObj]) -> (ValuedObj, Undefined):
 		return await self.normal_operator.deriv(du, *args[::-1]) #haha! that's how you invert it
 
 opers = {
