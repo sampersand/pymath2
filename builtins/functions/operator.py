@@ -35,6 +35,7 @@ class Operator(UnseededFunction, NamedObj):
 
 	# def simplify(self, *args):
 	# 	return None
+
 class AddSubOperator(Operator):
 	def __init__(self, name: str) -> None:
 		if __debug__:
