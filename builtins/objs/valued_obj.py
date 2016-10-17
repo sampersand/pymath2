@@ -11,6 +11,8 @@ class ValuedObj(MathObj):
 			return self._value
 		def fset(self, val: Any) -> None:
 			self._value = val
+		def fdel(self) -> None:
+			self._value = Undefined
 		return locals()
 	value = property(**value())
 

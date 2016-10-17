@@ -36,7 +36,7 @@ class SeededFunction(NamedValuedObj, Operable):
 
 
 	async def _get_derived_function(self, du):
-		print('boilerplate func: _get_derived_function')
+		# print('boilerplate func: _get_derived_function')
 		deriv = await self.value.deriv(du)
 		def y(): pass
 		# import types
