@@ -23,7 +23,7 @@ class SeededOperator(SeededFunction):
 		return str(other)
 
 	def _bool_oper_str(self) -> str:
-		print('Dummy Method: _bool_oper_str')
+		# print('Dummy Method: _bool_oper_str')
 		l = self.possibly_surround_in_parens(self.args[self.unseeded_base_object.is_inverted])
 		r = self.possibly_surround_in_parens(self.args[not self.unseeded_base_object.is_inverted])
 		return '{} {} {}'.format(l, self.name, r)

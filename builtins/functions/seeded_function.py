@@ -7,6 +7,9 @@ from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 class SeededFunction(NamedValuedObj, Operable):
 	def __init__(self, unseeded_instance: 'UnseededFunction', args: tuple = Undefined, name: str = Undefined) -> None:
 		super().__init__(name = name)
+		if __debug__:
+			from .unseeded_function import UnseededFunction
+			assert isinstance(unseeded_instance, UnseededFunction), '{}, type {}'.format(unseeded_instance, type(unseeded_instance))
 		self.unseeded_base_object = unseeded_instance
 		self.args = args
 
@@ -52,6 +55,7 @@ class SeededFunction(NamedValuedObj, Operable):
 		#             'f',
 		#             y.__code__.co_firstlineno,
 		#             y.__code__.co_lnotab)
+		print('I\'m here')
 
 		# return types.FunctionType(y_code, y.__globals__, 'f')
 		return lambda *args: deriv
@@ -59,10 +63,17 @@ class SeededFunction(NamedValuedObj, Operable):
 	async def deriv(self, du: Variable) -> 'UnseededFunction':
 		from .unseeded_function import UnseededFunction
 		# assert 0
-		return UnseededFunction(await self._get_derived_function(du), 
+		wrapd_func = await self._get_derived_function(du)
+
+		uns_func =  UnseededFunction(wrapd_func, 
 						      name = self.name,
 						      deriv_num = self.unseeded_base_object.deriv_num + 1,
+						      req_arg_len = self.unseeded_base_object.req_arg_len, 
 						      args_str = self.unseeded_base_object.args_str)
+		# print(wrapd_func, uns_func)
+		# print(uns_func.req_arg_len)
+		seed_func = uns_func(*self.args)
+		return seed_func
 		# print(derived_function)
 
 
