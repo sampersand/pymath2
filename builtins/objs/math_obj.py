@@ -1,3 +1,4 @@
+from typing import Any
 from pymath2 import Undefined
 from pymath2.builtins.exceptions.unknown_type import UnknownTypeError
 class MathObj():
@@ -23,3 +24,6 @@ class MathObj():
 			return Constant(arg)
 		else:
 			raise UnknownTypeError(type(arg))
+
+	def __ne__(self, other: Any) -> bool:
+		return not(self == other)

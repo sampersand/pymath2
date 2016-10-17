@@ -1,3 +1,4 @@
+from typing import Any 
 from pymath2 import Undefined
 from .math_obj import MathObj
 class NamedObj(MathObj):
@@ -24,3 +25,8 @@ class NamedObj(MathObj):
 
 	def __repr__(self) -> str:
 		return '{}({!r})'.format(type(self).__qualname__, self.name)
+
+	def __eq__(self, other: Any) -> bool:
+		if not hasattr(other, 'name'):
+			return False
+		return self.name == other.name

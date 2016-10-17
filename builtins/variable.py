@@ -5,6 +5,7 @@ from pymath2.builtins.objs.operable import Operable
 class Variable(NamedValuedObj, Operable):
 	def __init__(self, name: str = Undefined, value: Any = Undefined) -> None:
 		super().__init__(name = name, value = value)
-		
-	async def deriv(self, du: 'Variable') -> (0, 1):
+
+	async def deriv(self, du: 'Variable') -> (0, 1, 'self'):
 		return int(not self.isconst(du))
+		# return self if self == du else int(not self.isconst(du))

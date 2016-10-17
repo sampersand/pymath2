@@ -11,8 +11,7 @@ class SeededDerivative(SeededFunction):
 		return asyncio.get_event_loop().run_until_complete(asyncio.ensure_future(n.deriv(d)))
 	def __init__(self, n: 'Derivative', d: 'Derivative') -> None:
 		super().__init__(self._gen_derivative(n.value, d.value),
-				name = '{}/{}'.format(n.name, d.name),
-				args = (d.value, ))
+				name = '{}/{}'.format(n.name, d.name), args = (d.value,))
 		self.n = n
 		self.d = d
 

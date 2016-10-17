@@ -40,5 +40,11 @@ class ValuedObj(MathObj):
 	def __complex__(self) -> complex:
 		return complex(self.value)
 
+
+	def __eq__(self, other: Any) -> bool:
+		if not hasattr(other, 'value'):
+			return False
+		return self.value == other.value
+
 	async def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
 		return Undefined

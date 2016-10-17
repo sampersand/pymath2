@@ -16,3 +16,7 @@ class NamedValuedObj(NamedObj, ValuedObj):
 					self.name,
 					self.value)
 
+	def __eq__(self, other):
+		return NamedObj.__eq__(self, other) or ValuedObj.__eq__(self, other)
+
+
