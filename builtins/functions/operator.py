@@ -1,20 +1,26 @@
 from asyncio import ensure_future
-
 from typing import Callable
+from functools import reduce
 
 from pymath2 import Undefined
 from pymath2.builtins.variable import Variable
-from .unseeded_function import UnseededFunction
-from .seeded_operator import SeededOperator
 from pymath2.builtins.objs.valued_obj import ValuedObj
 from pymath2.builtins.objs.named_obj import NamedObj
+
+from .unseeded_function import UnseededFunction
+from .seeded_operator import SeededOperator
+
 class Operator(UnseededFunction, NamedObj):
 	seeded_type = SeededOperator
 	is_inverted = False
-	def __init__(self, name: str, priority: int, wrapped_function: Callable) -> None:
-		UnseededFunction.__init__(self, wrapped_function)
+	def __init__(self, name: str,
+				 priority: int,
+				 wrapped_function: Callable = Undefined,
+				 req_arg_len = Undefined) -> None:
+		UnseededFunction.__init__(self, wrapped_function, req_arg_len = req_arg_len)
 		NamedObj.__init__(self, name)
 		self.priority = priority
+
 	@property
 	def func_name(self) -> str:
 		if __debug__:
@@ -25,12 +31,11 @@ class Operator(UnseededFunction, NamedObj):
 		return self.name
 
 	def __repr__(self) -> str:
-		return '{}({!r}, {!r}, {!r})'.format(type(self).__qualname__, self.name, self.priority, self.wrapped_function)
+		return '{}({!r}, {!r}, {!r}, {!r})'.format(type(self).__qualname__, self.name, self.priority, self.wrapped_function, self.req_arg_len)
 
 	def is_lower_precedence(self, other: UnseededFunction) -> bool:
 		if not hasattr(other, 'priority'):
 			return False
-			# raise AttributeError("'{}' needs to have the attriubute 'priority'".format(type(other)))
 		return self.priority < other.priority
 
 	async def deriv(self, du: Variable, *args: (ValuedObj, )) -> ('ValuedObj', Undefined):
@@ -39,17 +44,36 @@ class Operator(UnseededFunction, NamedObj):
 	# def simplify(self, *args):
 	# 	return None
 
-class AddSubOperator(Operator):
+class MultiArgOperator(Operator):
+	func_for_two_args = Undefined
+
+	def __init__(self, name: str, priority: int) -> None:
+		super().__init__(name, priority, req_arg_len = -1)
+
+	def _get_scrub(self, l, r):
+		return self.scrub(self.func_for_two_args(l, r))
+
+	def _get_result(self, *args):
+		return reduce(self._get_scrub, args)
+
+	@property
+	def wrapped_function(self):
+		if __debug__:
+			assert self.func_for_two_args is not Undefined
+		return self._get_result
+	# def __str__(self)
+
+class AddSubOperator(MultiArgOperator):
 	def __init__(self, name: str) -> None:
+		super().__init__(name, 3)
 		if __debug__:
 			assert name in {'+', '-'}
 
-		if name == '+':
-			wrapped_function = lambda l, r: l.value + r.value
-		else:
-			wrapped_function = lambda l, r: l.value - r.value
-
-		super().__init__(name, 3, wrapped_function)
+	@property
+	def func_for_two_args(self):
+		if self._is_plus:
+			return lambda l, r: l.value + r.value
+		return lambda l, r: l.value - r.value
 
 	@property
 	def _is_plus(self) -> bool:
@@ -64,27 +88,30 @@ class AddSubOperator(Operator):
 			return await ld + await rd
 		return await ld - await rd
 
-class MulOperator(Operator):
+class MulOperator(MultiArgOperator):
+	func_for_two_args = staticmethod(lambda l, r: l.value * r.value)
 	def __init__(self) -> None:
-		super().__init__('*', 2, lambda l, r: l.value * r.value)
+		super().__init__('*', 2)
 
 	async def deriv(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
 		ld = ensure_future(l.deriv(du))
 		rd = ensure_future(r.deriv(du))
 		return await ld * r + l * await rd
 
-class TrueDivOperator(Operator):
+class TrueDivOperator(MultiArgOperator):
+	func_for_two_args = staticmethod(lambda l, r: l.value / r.value)
 	def __init__(self) -> None:
-		super().__init__('/', 2, lambda l, r: l.value / r.value)
+		super().__init__('/', 2)
 
 	async def deriv(self, du: Variable, n: ValuedObj, d: ValuedObj) -> (ValuedObj, Undefined):
 		nd = ensure_future(n.deriv(du))
 		dd = ensure_future(d.deriv(du))
 		return (d * await nd - n * await dd) / d ** 2
 
-class PowOperator(Operator):
+class PowOperator(MultiArgOperator):
+	func_for_two_args = staticmethod(lambda b, p: b.value ** p.value)
 	def __init__(self) -> None:
-		super().__init__('**', 0, lambda b, p: b.value ** p.value)
+		super().__init__('**', 0)
 
 	async def deriv(self, du: Variable, b: ValuedObj, p: ValuedObj) -> (ValuedObj, Undefined):
 		bc = b.isconst(du)
@@ -114,7 +141,10 @@ class InvertedOperator(Operator):
 	is_inverted = True
 	def __init__(self, normal_operator: Operator) -> None:
 		self.normal_operator = normal_operator
-		super().__init__(normal_operator.name, normal_operator.priority, normal_operator.wrapped_function)
+		super().__init__(self.normal_operator.name,
+			self.normal_operator.priority,
+			self.normal_operator.wrapped_function,
+			self.normal_operator.req_arg_len)
 
 	@property
 	def wrapped_function(self) -> Callable:

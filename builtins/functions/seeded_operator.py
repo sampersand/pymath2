@@ -6,8 +6,15 @@ from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 from .seeded_function import SeededFunction
 from pymath2.builtins.objs.operable import Operable
 class SeededOperator(SeededFunction):
+	@staticmethod
+	def _consolidate_args(args):
+		ret = args
+		# if __debug__:
+		# if not hasattr(other, 'unseeded_base_object'):
+		# print('args0:', args[0])
+		return ret
 	def __init__(self, oper: 'Operator', args: tuple) -> None:
-		super().__init__(oper, args)
+		super().__init__(oper, self._consolidate_args(args))
 		if __debug__:
 			from .operator import Operator
 			assert isinstance(self.unseeded_base_object, Operator)
@@ -25,10 +32,11 @@ class SeededOperator(SeededFunction):
 			return '({})'.format(other)
 		return str(other)
 
-	def _bool_oper_str(self) -> str:
+
+	def _bool_oper_str(self, l, r) -> str:
 		# print('Dummy Method: _bool_oper_str')
-		l = self.possibly_surround_in_parens(self.args[self.unseeded_base_object.is_inverted])
-		r = self.possibly_surround_in_parens(self.args[not self.unseeded_base_object.is_inverted])
+		l = self.possibly_surround_in_parens(l)
+		r = self.possibly_surround_in_parens(r)
 		return '{} {} {}'.format(l, self.name, r)
 
 	def __str__(self) -> str:
@@ -37,7 +45,10 @@ class SeededOperator(SeededFunction):
 		elif self.unseeded_base_object.req_arg_len == 1:
 			return '{}{}'.format(self.name, self.possibly_surround_in_parens(self.args[0]))
 		elif self.unseeded_base_object.req_arg_len == 2:
-			return self._bool_oper_str()
+			return self._bool_oper_str(*(self.args if not self.unseeded_base_object.is_inverted else self.args[::-1]))
+		elif self.unseeded_base_object.req_arg_len == -1:
+			from functools import reduce
+			return reduce(lambda a, b: self._bool_oper_str(a, b), self.args)
 		else:
 			from pymath2.builtins.exceptions.pymath2_error import PyMath2Error
 			raise PyMath2Error('How does an operator have {} required arguments?'.
