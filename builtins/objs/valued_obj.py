@@ -9,7 +9,7 @@ class ValuedObj(MathObj):
 	def value() -> dict:
 		async def fget(self) -> (Any, Undefined):
 			return self._value
-		async def fset(self, val: Any) -> None:
+		def fset(self, val: Any) -> None:
 			self._value = val
 		async def fdel(self) -> None:
 			self._value = Undefined

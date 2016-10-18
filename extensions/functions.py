@@ -43,7 +43,7 @@ class MathFunction(UnseededFunction, FancyText):
 		if __debug__:
 			assert bool(args_str) == bool(body_str), 'cannot pass args and not a body!'
 	@property
-	def req_arg_len(self) -> int:
+	async def req_arg_len(self) -> int:
 		return self._req_arg_len
 
 	def __str__(self) -> str:
@@ -67,26 +67,35 @@ fact = MathFunction('!', math.factorial)
 gamma = MathFunction(('gamma', 'Γ'), math.gamma)
 Γ = gamma
 
+# future: async lambda 
 async def derive(self, a, du): return cos(a) * await a.deriv(du)
 sin.derivative = derive
 
+# future: async lambda 
 async def derive(self, a, du): return -sin(a) * await a.deriv(du)
 cos.derivative = derive
 
+# future: async lambda 
 async def derive(self, a, du): return sec(a) ** 2 * await a.deriv(du)
 tan.derivative = derive
 
+# future: async lambda 
 async def derive(self, a, du): return -csc(a) * cot(a) * await a.deriv(du)
 csc.derivative = derive
 
+# future: async lambda 
 async def derive(self, a, du): return sec(a) * tan(a) * await a.deriv(du)
 sec.derivative = derive
 
+# future: async lambda 
 async def derive(self, a, du): return -csc(a) ** 2 * await a.deriv(du)
 cot.derivative = derive
 
+# future: async lambda 
 async def derive(self, a, du): return await a.deriv(du) / a
 ln.derivative = derive
 
+del derive
 
 __all__ = tuple(x for x in list(locals()) if x[0] != '_' and type(x) != type)
+

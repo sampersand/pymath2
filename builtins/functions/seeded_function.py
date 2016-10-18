@@ -21,7 +21,7 @@ class SeededFunction(NamedValuedObj, Operable):
 	async def value(self) -> Any:
 		if self.args == Undefined:
 			return Undefined
-		return self.scrub(self.unseeded_base_object.wrapped_function(*self.args))
+		return self.scrub(await (await self.unseeded_base_object.wrapped_function)(*self.args))
 
 	@property
 	async def hasvalue(self) -> Any:
@@ -68,12 +68,12 @@ class SeededFunction(NamedValuedObj, Operable):
 	async def deriv(self, du: Variable) -> 'UnseededFunction':
 		from .unseeded_function import UnseededFunction
 		# assert 0
-		wrapd_func = await self._get_derived_function(du)
-
-		uns_func =  UnseededFunction(wrapd_func, 
+		wrapd_func = future(self._get_derived_function(du))
+		req_arg_len = future(self.unseeded_base_object.req_arg_len)
+		uns_func =  UnseededFunction(await wrapd_func, 
 						      name = self.name,
 						      deriv_num = self.unseeded_base_object.deriv_num + 1,
-						      req_arg_len = self.unseeded_base_object.req_arg_len, 
+						      req_arg_len = await req_arg_len, 
 						      args_str = self.unseeded_base_object.args_str)
 		# print(wrapd_func, uns_func)
 		# print(uns_func.req_arg_len)

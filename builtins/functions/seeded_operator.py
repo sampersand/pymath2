@@ -41,18 +41,19 @@ class SeededOperator(SeededFunction):
 
 	def __str__(self) -> str:
 		if await_result(self.hasvalue):
-			return str(self.value)
-		elif self.unseeded_base_object.req_arg_len == 1:
+			return str(await_result(self.value))
+		req_arg_len = await_result(self.unseeded_base_object.req_arg_len)
+		if req_arg_len == 1:
 			return '{}{}'.format(self.name, self.possibly_surround_in_parens(self.args[0]))
-		elif self.unseeded_base_object.req_arg_len == 2:
+		elif req_arg_len == 2:
 			return self._bool_oper_str(*(self.args if not self.unseeded_base_object.is_inverted else self.args[::-1]))
-		elif self.unseeded_base_object.req_arg_len == -1:
+		elif req_arg_len == -1:
 			from functools import reduce
 			return reduce(lambda a, b: self._bool_oper_str(a, b), self.args)
 		else:
 			from pymath2.builtins.exceptions.pymath2_error import PyMath2Error
 			raise PyMath2Error('How does an operator have {} required arguments?'.
-								format(self.unseeded_base_object.req_arg_len))
+								format(await_result(self.unseeded_base_object.req_arg_len)))
 
 	async def deriv(self, du: Variable) -> ('ValuedObj', Undefined):
 		return await self.unseeded_base_object.deriv(du, *self.args)
