@@ -123,12 +123,10 @@ class PowOperator(MultiArgOperator):
 		return reduce(self._get_scrub, reversed(args))
 
 	async def deriv(self, du: Variable, b: ValuedObj, p: ValuedObj) -> (ValuedObj, Undefined):
-		bc = b.isconst(du)
-		pc = p.isconst(du)
-		# bc = ensure_future(b.isconst(du))
-		# pc = ensure_future(p.isconst(du))
-		# bc = await bc
-		# pc = await pc
+		bc = ensure_future(b.isconst(du))
+		pc = ensure_future(p.isconst(du))
+		bc = await bc
+		pc = await pc
 		if bc and pc:
 			return 0
 

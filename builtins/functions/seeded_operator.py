@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined
+from pymath2 import Undefined, await_result
 from pymath2.builtins.objs.math_obj import MathObj
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
@@ -40,7 +40,7 @@ class SeededOperator(SeededFunction):
 		return '{} {} {}'.format(l, self.name, r)
 
 	def __str__(self) -> str:
-		if self.hasvalue:
+		if await_result(self.hasvalue):
 			return str(self.value)
 		elif self.unseeded_base_object.req_arg_len == 1:
 			return '{}{}'.format(self.name, self.possibly_surround_in_parens(self.args[0]))

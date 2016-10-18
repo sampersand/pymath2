@@ -15,8 +15,11 @@ class MathConstant(Constant, NamedObj, FancyText):
 		return self.fancy.name if self.fancy.has('name') else self.name
 
 	def __repr__(self) -> str:
-		return '{}({!r}, {!r}{}'.format(type(self).__qualname, self.name, self.value,
-			'' if not hasattr(self.fancy, 'name') else ', ' + repr(self.fancy.name))
+		return '{}({!r}, {!r}{}'.format(
+				type(self).__qualname,
+				self.name,
+				await_result(self.value),
+				'' if not hasattr(self.fancy, 'name') else ', ' + repr(self.fancy.name))
 pi = MathConstant(('pi', 'pi'), math.pi)
 # pi = MathConstant(('pi', 'π'), math.pi)
 e = MathConstant('e', math.e)

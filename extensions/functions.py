@@ -1,6 +1,5 @@
-from typing import Any
+from typing import Any, Callable
 import math
-from typing import Callable
 
 from .fancy_text import FancyText
 from pymath2 import Undefined
@@ -14,10 +13,11 @@ class SeededMathFunction(SeededFunction):
 
 
 	@property
-	def value(self) -> Any:
-		if any(arg is Undefined or hasattr(arg, 'hasvalue') and not arg.hasvalue for arg in self.args):
-			return Undefined
-		return super().value
+	async def value(self) -> Any:
+		async for arg in self.args:
+			if arg is Undefined or hasattr(arg, 'hasvalue') and not await arg.hasvalue:
+				return Undefined
+		return await super().value
 
 
 	async def deriv(self, du: Variable) -> SeededFunction:

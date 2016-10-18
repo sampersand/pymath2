@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined
+from pymath2 import Undefined, await_result
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.operable import Operable
 from pymath2.builtins.objs.valued_obj import ValuedObj
@@ -18,18 +18,18 @@ class SeededFunction(NamedValuedObj, Operable):
 		return self._name if self._name is not Undefined else self.unseeded_base_object.name
 
 	@property
-	def value(self) -> Any:
+	async def value(self) -> Any:
 		if self.args == Undefined:
 			return Undefined
 		return self.scrub(self.unseeded_base_object.wrapped_function(*self.args))
 
 	@property
-	def hasvalue(self) -> Any:
-		return self.value.hasvalue
+	async def hasvalue(self) -> Any:
+		return await (await self.value).hasvalue
 
 	def __str__(self) -> str:
-		if self.hasvalue:
-			return str(self.value)
+		if await_result(self.hasvalue):
+			return str(await_result(self.value))
 		return '{}{}({})'.format(self.name,
 								 self.unseeded_base_object._prime_str,
 								 str(self.args) if self.args is Undefined else ', '.join(str(x) for x in self.args))
@@ -38,13 +38,14 @@ class SeededFunction(NamedValuedObj, Operable):
 		return '{}({!r}{}{})'.format(type(self).__qualname__, self.unseeded_base_object, 
 			', {!r}'.format(self.args) if self.args is not Undefined else '',
 			', {!r}'.format(self.args) if self.name is not Undefined else '',)
-	def isconst(self, du):
-		return self.hasvalue #maybe something with du?
+
+	async def isconst(self, du):
+		return await self.hasvalue #maybe something with du?
 
 
 	async def _get_derived_function(self, du):
 		# print('boilerplate func: _get_derived_function')
-		deriv = await self.value.deriv(du)
+		deriv = await (await self.value).deriv(du)
 		def y(): pass
 		# import types
 		# y_code = types.CodeType(deriv.unseeded_base_object.req_arg_len, 0,

@@ -41,7 +41,8 @@ class Derivative(NamedValuedObj):
 		return self._gen_derivative(other)
 
 	def _gen_derivative(self, other):
-		nd = self.value.deriv(other.value)
+		print('todo: make _gen_derivative async')
+		nd = await_result(self.value.deriv(other.value))
 		ndfuture = asyncio.ensure_future(nd)
 		# print(ndfuture)
 		res = asyncio.get_event_loop().run_until_complete(ndfuture)
