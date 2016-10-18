@@ -53,14 +53,14 @@ class MultiArgOperator(Operator):
 	def _get_scrub(self, l, r):
 		return self.scrub(self.func_for_two_args(l, r))
 
-	def _get_result(self, *args):
+	def _reduce_args(self, *args):
 		return reduce(self._get_scrub, args)
 
 	@property
 	def wrapped_function(self):
 		if __debug__:
 			assert self.func_for_two_args is not Undefined
-		return self._get_result
+		return self._reduce_args
 	# def __str__(self)
 
 class AddSubOperator(MultiArgOperator):
@@ -110,8 +110,16 @@ class TrueDivOperator(MultiArgOperator):
 
 class PowOperator(MultiArgOperator):
 	func_for_two_args = staticmethod(lambda b, p: b.value ** p.value)
+
 	def __init__(self) -> None:
 		super().__init__('**', 0)
+
+
+	def _get_scrub(self, l, r):
+		return super()._get_scrub(r, l)
+
+	def _reduce_args(self, *args):
+		return reduce(self._get_scrub, args[::-1])
 
 	async def deriv(self, du: Variable, b: ValuedObj, p: ValuedObj) -> (ValuedObj, Undefined):
 		bc = b.isconst(du)
