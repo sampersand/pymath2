@@ -9,3 +9,5 @@ class Variable(NamedValuedObj, Operable):
 	async def deriv(self, du: 'Variable') -> (0, 1, 'self'):
 		return int(not self.isconst(du))
 		# return self if self == du else int(not self.isconst(du))
+	def __repr__(self) -> str:
+		return '{}({})'.format(type(self).__qualname__, ', '.join(repr(x) for x in (self.name, self.value) if x is not Undefined))

@@ -29,7 +29,8 @@ class Operator(UnseededFunction, NamedObj):
 
 	def is_lower_precedence(self, other: UnseededFunction) -> bool:
 		if not hasattr(other, 'priority'):
-			raise AttributeError("'{}' needs to have the attriubute 'priority'".format(type(other)))
+			return False
+			# raise AttributeError("'{}' needs to have the attriubute 'priority'".format(type(other)))
 		return self.priority < other.priority
 
 	async def deriv(self, du: Variable, *args: (ValuedObj, )) -> ('ValuedObj', Undefined):

@@ -23,7 +23,7 @@ class SeededMathFunction(SeededFunction):
 	async def deriv(self, du: Variable) -> SeededFunction:
 		if __debug__:
 			assert self.unseeded_base_object.derivative is not Undefined, 'No known way to take the derivative of ' + str(self)
-		return await self.unseeded_base_object.derivative(*self.args, du)
+		return await self.unseeded_base_object.derivative(self, *self.args, du)
 
 class MathFunction(UnseededFunction, FancyText):
 	seeded_type = SeededMathFunction
@@ -49,6 +49,8 @@ class MathFunction(UnseededFunction, FancyText):
 	def __str__(self) -> str:
 		return self._gen_unseeded_str(self.name, self.args_str, self.body_str) if self.fancy.has('args_str') else self.name
 
+	def __repr__(self) -> str:
+		return self.name
 sin = MathFunction('sin', math.sin)
 cos = MathFunction('cos', math.cos)
 tan = MathFunction('tan', math.tan)
@@ -65,31 +67,25 @@ fact = MathFunction('!', math.factorial)
 gamma = MathFunction(('gamma', 'Γ'), math.gamma)
 Γ = gamma
 
-async def derive(a, du):
-	return (cos(a)) * (await a.deriv(du))
-	# cosa = cos(a)
-	# aderiv = await a.deriv(du)
-	# cosa_aderiv = cosa * aderiv
-	# return cosa_aderiv
-	# return cos(a) * await a.deriv(du)
+async def derive(self, a, du): return cos(a) * await a.deriv(du)
 sin.derivative = derive
 
-async def derive(a, du): return -sin(a) * await a.deriv(du)
+async def derive(self, a, du): return -sin(a) * await a.deriv(du)
 cos.derivative = derive
 
-async def derive(a, du): return sec(a) ** 2 * await a.deriv(du)
+async def derive(self, a, du): return sec(a) ** 2 * await a.deriv(du)
 tan.derivative = derive
 
-async def derive(a, du): return -csc(a) * cot(a) * await a.deriv(du)
+async def derive(self, a, du): return -csc(a) * cot(a) * await a.deriv(du)
 csc.derivative = derive
 
-async def derive(a, du): return sec(a) * tan(a) * await a.deriv(du)
+async def derive(self, a, du): return sec(a) * tan(a) * await a.deriv(du)
 sec.derivative = derive
 
-async def derive(a, du): return -csc(a) ** 2 * await a.deriv(du)
+async def derive(self, a, du): return -csc(a) ** 2 * await a.deriv(du)
 cot.derivative = derive
 
-async def deriv(a, du): return await a.deriv(du) / a
+async def derive(self, a, du): return await a.deriv(du) / a
 ln.derivative = derive
 
 

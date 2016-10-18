@@ -12,6 +12,9 @@ class SeededOperator(SeededFunction):
 			from .operator import Operator
 			assert isinstance(self.unseeded_base_object, Operator)
 
+	def __repr__(self) -> str:
+		return '{}({!r}, {!r})'.format(type(self).__qualname__, self.unseeded_base_object, self.args)
+
 	def is_lower_precedence(self, other: SeededFunction) -> bool:
 		if not hasattr(other, 'unseeded_base_object'):
 			return False

@@ -34,6 +34,10 @@ class SeededFunction(NamedValuedObj, Operable):
 								 self.unseeded_base_object._prime_str,
 								 str(self.args) if self.args is Undefined else ', '.join(str(x) for x in self.args))
 
+	def __repr__(self) -> str:
+		return '{}({!r}{}{})'.format(type(self).__qualname__, self.unseeded_base_object, 
+			', {!r}'.format(self.args) if self.args is not Undefined else '',
+			', {!r}'.format(self.args) if self.name is not Undefined else '',)
 	def isconst(self, du):
 		return self.hasvalue #maybe something with du?
 
