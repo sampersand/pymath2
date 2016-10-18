@@ -39,7 +39,8 @@ class Operator(UnseededFunction, NamedObj):
 		return self.priority < other.priority
 
 	async def deriv(self, du: Variable, *args: (ValuedObj, )) -> ('ValuedObj', Undefined):
-		return Undefined
+		raise ValueError('What error type? TODO: find this out. But this class doesn\'t have a deriv defined')
+		# return Undefined
 
 	# def simplify(self, *args):
 	# 	return None
@@ -119,7 +120,7 @@ class PowOperator(MultiArgOperator):
 		return super()._get_scrub(r, l)
 
 	def _reduce_args(self, *args):
-		return reduce(self._get_scrub, args[::-1])
+		return reduce(self._get_scrub, reversed(args))
 
 	async def deriv(self, du: Variable, b: ValuedObj, p: ValuedObj) -> (ValuedObj, Undefined):
 		bc = b.isconst(du)
