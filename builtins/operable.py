@@ -1,13 +1,16 @@
+import inspect
+
 from typing import Any
 from pymath2 import Undefined
-import inspect
-from .math_obj import MathObj
+from .objs.math_obj import MathObj
+
 class Operable(MathObj):
-	def _get_oper(self, other: Any = Undefined):
+	def _get_oper(self, other: Any = Undefined) -> 'SeededOperator':
 		from pymath2.builtins.functions.operator import opers
 		if other is Undefined:
 			return opers[inspect.stack()[1][3]](self)
 		return opers[inspect.stack()[1][3]](self, other)
+
 	def __add__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
 	def __sub__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
 	def __mul__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)

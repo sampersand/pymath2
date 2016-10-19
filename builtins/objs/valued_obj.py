@@ -1,9 +1,13 @@
 from typing import Any
-from pymath2 import Undefined
+from pymath2 import Undefined, Override
 from .math_obj import MathObj
-class ValuedObj(MathObj):
-	def __init__(self, value: Any = Undefined) -> None:
-		MathObj.__init__(self)
+from pymath2.builtins.operable import Operable
+from pymath2.builtins.derivable import Derivable
+class ValuedObj(Operable, Derivable):
+
+	@Override(Operable, Derivable)
+	def __init__(self, value: Any = Undefined, **kwargs) -> None:
+		super().__init__(**kwargs)
 		self._value = value
 
 	@property
@@ -15,23 +19,16 @@ class ValuedObj(MathObj):
 		self._value = val
 
 	@value.deleter
-	def fdel(self) -> None:
+	def value(self) -> None:
 		self._value = Undefined
 
 	@property
 	def hasvalue(self) -> bool:
-		return (self.value) is not Undefined #await
+		return self.value is not Undefined #await
 
-	def isconst(self, du):
+	@Override(Derivable)
+	def isconst(self, du: 'Variable'):
 		return self != du
-
-	def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
-		return Undefined
-
-
-	def d(self, other):
-		from pymath2.builtins.derivative import Derivative
-		return Derivative(self) / Derivative(other)
 
 	def __abs__(self) -> float:
 		return abs(float(self))
@@ -52,12 +49,16 @@ class ValuedObj(MathObj):
 	def __eq__(self, other: Any) -> bool:
 		if not hasattr(other, 'value'):
 			return False
-		return self.value == other.value
+		if self.value == other.value and self.value is not Undefined:
+			return True
+		return super().__eq__(other)
 
+	@Override(Operable, Derivable)
 	def __str__(self) -> str:
 		return self.generic_str('unvalued') if not self.hasvalue else str(self.value)
 
+	@Override(Operable, Derivable)
 	def __repr__(self) -> str:
-		return '{}({!r})'.format(type(self).__qualname__, self.value)
+		return '{}({!r})'.format(self.__class__.__name__, self.value)
 
 

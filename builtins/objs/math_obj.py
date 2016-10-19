@@ -1,8 +1,6 @@
 from typing import Any
 from pymath2 import Undefined
 class MathObj():
-	def __init__(self) -> None:
-		pass
 
 	@classmethod
 	def generic_str(cls: type, prefix: str) -> str:
@@ -12,10 +10,10 @@ class MathObj():
 		return self.generic_str('default')
 
 	def __repr__(self) -> str:
-		return '{}()'.format(type(self).__qualname__)
+		return '{}()'.format(self.__class__.__name__)
 
 	@staticmethod
-	def scrub(arg) -> 'MathObj':
+	def scrub(arg: Any) -> 'MathObj':
 		if isinstance(arg, MathObj) or arg is Undefined:
 			return arg
 		elif isinstance(arg, (int, float, bool, complex)):

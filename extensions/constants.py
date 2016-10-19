@@ -5,7 +5,9 @@ from pymath2.builtins.objs.named_obj import NamedObj
 from pymath2.builtins.constant import Constant
 from .fancy_text import FancyText
 class MathConstant(Constant, NamedObj, FancyText):
-	def __init__(self, name: [str] + FancyText.fancy.types, value: Any) -> None:
+	def __init__(self, name: [str] + FancyText.fancy.types, value: Any, **kwargs) -> None:
+		print('oh no')
+		super().__init__()
 		"""Note - this calls the valued constructor 3 times, and idk how to fix it."""
 		FancyText.__init__(self)
 		Constant.__init__(self, value)

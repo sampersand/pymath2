@@ -1,7 +1,7 @@
 from typing import Any
 class UndefinedClass():
 	def __str__(self) -> str: return 'Undefined'
-	def __repr__(self) -> str: return '{}()'.format(type(self).__qualname__)
+	def __repr__(self) -> str: return '{}()'.format(self.__class__.__name__)
 
 	def __add__(self, other: Any) -> 'self': return self
 	def __sub__(self, other: Any) -> 'self': return self

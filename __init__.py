@@ -1,4 +1,5 @@
 # from .utils import await_result, future
+from .utils import Override
 from .builtins.undefined import Undefined
 from .builtins.constant import Constant; const = Constant
 from .builtins.variable import Variable; var = Variable

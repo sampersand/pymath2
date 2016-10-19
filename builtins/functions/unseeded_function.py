@@ -1,13 +1,19 @@
 from typing import Callable
-from pymath2 import Undefined
+from pymath2 import Undefined, Override
 from pymath2.builtins.objs.named_obj import NamedObj
 from .seeded_function import SeededFunction
 class UnseededFunction(NamedObj):
 	seeded_type = SeededFunction
-	def __init__(self, wrapped_function: Callable = Undefined, name: str = Undefined,
-				 args_str: str = Undefined, body_str: str = Undefined,
-				 req_arg_len = Undefined, deriv_num = 0) -> None:
-		NamedObj.__init__(self, name = name)
+
+	@Override(NamedObj)
+	def __init__(self,
+				 wrapped_function: Callable = Undefined,
+				 args_str: str = Undefined,
+				 body_str: str = Undefined,
+				 req_arg_len = Undefined,
+				 deriv_num = 0,
+				 **kwargs) -> None:
+		super().__init__(**kwargs)
 		self.wrapped_function = wrapped_function
 		if isinstance(args_str, (list, tuple)):
 			args_str = ', '.join(str(x) for x in args_str)
@@ -36,20 +42,19 @@ class UnseededFunction(NamedObj):
 
 	def __call__(self, *args: tuple) -> seeded_type:
 		if __debug__:
-			assert len(args) == self.req_arg_len or self.req_arg_len == -1,\
-				'length mismatch between {} and {}'.format(len(args), self.req_arg_len)
-		return self.seeded_type(self, tuple(self.scrub(arg) for arg in args))
+			assert len(args) == self.req_arg_len or self.req_arg_len == -1, 'length mismatch between {} and {}'.format(len(args), self.req_arg_len)
+		return self.seeded_type(unseeded_instance = self, args = tuple(self.scrub(arg) for arg in args))
 
 	@staticmethod
 	def _gen_unseeded_str(name, deriv_num, args_str, body_str):
 		return '{}{}({}) = {}'.format(name, UnseededFunction._prime_str(deriv_num), args_str, body_str)
 
+	@Override(NamedObj)
 	def __str__(self) -> str:
 		return self._gen_unseeded_str(self.name, self.deriv_num, self.args_str, self.body_str)
 
+	@Override(NamedObj)
 	def __repr__(self) -> str:
-		# return '{}({!r}{})'.format(type(self).__qualname__, self.wrapped_function,
-		# 							repr(self.name) if self.hasname else '')
 		return '{}({!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r})'.format(type(self.__qualname__),
 				self.wrapped_function,
 				self.name,

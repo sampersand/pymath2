@@ -3,9 +3,12 @@ from .math_list import MathList
 class AbstractPoint(MathList):
 	pass
 class Point2D(AbstractPoint):
-	def __new__(cls, *args, isbase = False):
-		return AbstractPoint.__new__(cls, *args)
-	def __init__(self, *args, isbase = False):
+
+	def __new__(cls, *args, isbase = False, **kwargs):
+		return super().__new__(cls, *args, **kwargs)
+
+	def __init__(self, *args, isbase = False, **kwargs):
+		super().__init__(**kwargs)
 		if __debug__:
 			assert len(args) == 2
 		super().__init__(*args)

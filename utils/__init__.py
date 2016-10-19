@@ -10,3 +10,8 @@ def await_result(coro, event_loop = None):
 		assert asyncio.iscoroutine(coro), type(coro)
 	return event_loop.run_until_complete(coro)
 future = asyncio.ensure_future
+
+def Override(*classes_overriden):
+	def capture_func(func):
+		return func
+	return capture_func
