@@ -4,9 +4,9 @@ from .named_obj import NamedObj
 from .valued_obj import ValuedObj
 class NamedValuedObj(NamedObj, ValuedObj):
 	def __init__(self, name: str = Undefined, value: Any = Undefined) -> None:
-		super().__init__(name = name)
-		super().__init__(value = value)
-		quit()
+		NamedObj.__init__(self, name = name)
+		ValuedObj.__init__(self, value = value)
+
 	def __str__(self) -> str:
 		return ValuedObj.__str__(self) if self.hasvalue else NamedObj.__str__(self)
 

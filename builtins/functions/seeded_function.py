@@ -6,7 +6,8 @@ from pymath2.builtins.objs.valued_obj import ValuedObj
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 class SeededFunction(NamedValuedObj, Operable):
 	def __init__(self, unseeded_instance: 'UnseededFunction', args: tuple = Undefined, name: str = Undefined) -> None:
-		super().__init__(name = name)
+		NamedValuedObj.__init__(self, name = name)
+		Operable.__init__
 		if __debug__:
 			from .unseeded_function import UnseededFunction
 			assert isinstance(unseeded_instance, UnseededFunction), '{}, type {}'.format(unseeded_instance, type(unseeded_instance))

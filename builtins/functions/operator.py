@@ -56,7 +56,7 @@ class MultiArgOperator(Operator):
 	func_for_two_args = Undefined
 
 	def __init__(self, name: str, priority: int) -> None:
-		super().__init__(name, priority, req_arg_len = -1)
+		Operator.__init__(self, name, priority, req_arg_len = -1)
 
 	def _reduce_args(self, *args): # async
 		if __debug__:
@@ -74,7 +74,7 @@ class MultiArgOperator(Operator):
 
 class AddSubOperator(MultiArgOperator):
 	def __init__(self, name: str) -> None:
-		super().__init__(name, 3)
+		MultiArgOperator.__init__(self, name, 3)
 		if __debug__:
 			assert name in {'+', '-'}
 
@@ -119,7 +119,7 @@ class MulOperator(MultiArgOperator):
 		return lv * rv #await
 
 	def __init__(self) -> None:
-		super().__init__('*', 2)
+		MultiArgOperator.__init__(self, '*', 2)
 
 	def deriv(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
 		ld = (l.deriv(du)) #future
@@ -137,7 +137,7 @@ class TrueDivOperator(MultiArgOperator):
 	# func_for_two_args = staticmethod(lambda l, r: l.value / r.value)
 
 	def __init__(self) -> None:
-		super().__init__('/', 2)
+		MultiArgOperator.__init__(self, '/', 2)
 
 	def deriv(self, du: Variable, n: ValuedObj, d: ValuedObj) -> (ValuedObj, Undefined):
 		nd = (n.deriv(du)) #future
@@ -155,7 +155,7 @@ class PowOperator(MultiArgOperator):
 	# func_for_two_args = staticmethod(lambda b, p: b.value ** p.value)
 
 	def __init__(self) -> None:
-		super().__init__('**', 0)
+		MultiArgOperator.__init__(self, '**', 0)
 
 	def _reduce_args(self, *args):
 		if __debug__:
@@ -189,7 +189,7 @@ class PowOperator(MultiArgOperator):
 
 class UnaryOper(Operator):
 	def __init__(self, name: str) -> None:
-		super().__init__(name, 1, req_arg_len = 1)
+		Operator.__init__(self, name, 1, req_arg_len = 1)
 		if __debug__:
 			assert self.name in set('+-~')
 
@@ -208,14 +208,14 @@ class UnaryOper(Operator):
 			return -args[0].deriv(du)
 		if self.name == '+':
 			return +args[0].deriv(du)
-		return super().deriv(du, args)
+		return Operator.deriv(self, du, args)
 
 class InvertedOperator(Operator):
 	is_inverted = True
 	def __init__(self, _normal_operator: Operator) -> None:
 		self._normal_operator = _normal_operator
 		import asyncio
-		super().__init__(self._normal_operator.name,
+		Operator.__init__(self, self._normal_operator.name,
 			self._normal_operator.priority,
 			req_arg_len = self._normal_operator.req_arg_len)
 

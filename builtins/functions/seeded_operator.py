@@ -51,8 +51,7 @@ class SeededOperator(SeededFunction):
 			from functools import reduce
 			return str(reduce(lambda a, b: self._bool_oper_str(a, b), self.args))
 		else:
-			from pymath2.builtins.exceptions.pymath2_error import PyMath2Error
-			raise PyMath2Error('How does an operator have {} required arguments?'.
+			raise Exception('How does an operator have {} required arguments?'.
 								format(self.unseeded_base_object.req_arg_len))
 
 	def deriv(self, du: Variable) -> ('ValuedObj', Undefined):

@@ -1,6 +1,5 @@
 from typing import Any
 from pymath2 import Undefined
-from pymath2.builtins.exceptions.unknown_type import UnknownTypeError
 class MathObj():
 	def __init__(self) -> None:
 		pass
@@ -28,7 +27,7 @@ class MathObj():
 		elif arg == None:
 			return Undefined
 		else:
-			raise UnknownTypeError(type(arg))
+			raise TypeError(type(arg))
 
 	def __ne__(self, other: Any) -> bool:
 		return not(self == other)
