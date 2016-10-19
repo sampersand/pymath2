@@ -15,6 +15,7 @@ class SeededVectorFunction(SeededFunction): #make this mathfunction
 class GradiantVector(MathFunction):
 	seeded_type = SeededVectorFunction
 	__call__ = call
+
 	def __init__(self):
 		super().__init__('gradiant', GradiantVector.calcval, 
 			args_str = '(x0, y0, ... n0), f',
