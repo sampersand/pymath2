@@ -47,9 +47,3 @@ class Operable(MathObj):
 	def __rxor__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
 	def __rlshift__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
 	def __rrshift__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
-
-	def __bool__(self): raise NotDefinedError('__bool__')
-	def __float__(self): raise NotDefinedError('__float__')
-	def __int__(self): raise NotDefinedError('__int__')
-	def __complex__(self): raise NotDefinedError('__complex__')
-

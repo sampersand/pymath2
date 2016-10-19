@@ -10,7 +10,7 @@ class NamedObj(MathObj):
 	def name(self) -> (str, Undefined):
 		return self._name
 	@name.setter
-	def setter(self, val: str) -> None:
+	def name(self, val: str) -> None:
 		self._name = val
 
 	@property

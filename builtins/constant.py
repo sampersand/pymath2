@@ -9,6 +9,6 @@ class Constant(ValuedObj, Operable):
 
 	def deriv(self, du) -> 0:
 		return 0
+
 	def __repr__(self) -> str:
-		return '{}({})'.format(type(self).__qualname__,
-			repr(self.value) if self.hasvalue else '')
+		return '{}({})'.format(type(self).__qualname__, repr(self.value) if self.hasvalue else '')

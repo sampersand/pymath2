@@ -7,7 +7,7 @@ class UnseededFunction(NamedObj):
 	def __init__(self, wrapped_function: Callable = Undefined, name: str = Undefined,
 				 args_str: str = Undefined, body_str: str = Undefined,
 				 req_arg_len = Undefined, deriv_num = 0) -> None:
-		super().__init__(name)
+		NamedObj.__init__(self, name = name)
 		self.wrapped_function = wrapped_function
 		if isinstance(args_str, (list, tuple)):
 			args_str = ', '.join(str(x) for x in args_str)
@@ -21,9 +21,9 @@ class UnseededFunction(NamedObj):
 		return self._wrapped_function
 
 	@wrapped_function.setter
-	def setter(self, val: Callable) -> None:
+	def wrapped_function(self, val: Callable) -> None:
 		self._wrapped_function = val
-	
+
 	@staticmethod
 	def _prime_str(deriv_num):
 		if deriv_num > 3:

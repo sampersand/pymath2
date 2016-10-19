@@ -9,28 +9,29 @@ class ValuedObj(MathObj):
 	@property
 	def value(self) -> (Any, Undefined):
 		return self._value
+
 	@value.setter
-	def setter(self, val: Any) -> None:
+	def value(self, val: Any) -> None:
 		self._value = val
 
 	@value.deleter
 	def fdel(self) -> None:
 		self._value = Undefined
 
-	def isconst(self, du):
-		return self != du
-
 	@property
 	def hasvalue(self) -> bool:
 		return (self.value) is not Undefined #await
 
-	def __str__(self) -> str:
-		return self.generic_str('unvalued') if not self.hasvalue else str(self.value)
+	def isconst(self, du):
+		return self != du
 
-	def __repr__(self) -> str:
-		return '{}({!r})'.format(type(self).__qualname__, self.value)
+	def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
+		return Undefined
 
 
+	def d(self, other):
+		from pymath2.builtins.derivative import Derivative
+		return Derivative(self) / Derivative(other)
 
 	def __abs__(self) -> float:
 		return abs(float(self))
@@ -53,10 +54,10 @@ class ValuedObj(MathObj):
 			return False
 		return self.value == other.value
 
-	def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
-		return Undefined
+	def __str__(self) -> str:
+		return self.generic_str('unvalued') if not self.hasvalue else str(self.value)
+
+	def __repr__(self) -> str:
+		return '{}({!r})'.format(type(self).__qualname__, self.value)
 
 
-	def d(self, other):
-		from pymath2.builtins.derivative import Derivative
-		return Derivative(self) / Derivative(other)

@@ -67,7 +67,7 @@ class MultiArgOperator(Operator):
 		return last_res
 
 	@Operator.wrapped_function.getter
-	def getter(self):
+	def wrapped_function(self):
 		if __debug__:
 			assert self.func_for_two_args is not Undefined
 		return self._reduce_args
@@ -194,7 +194,7 @@ class UnaryOper(Operator):
 			assert self.name in set('+-~')
 
 	@Operator.wrapped_function.getter
-	def getter(self) -> Callable:
+	def wrapped_function(self) -> Callable:
 		if self.name == '-':
 			return lambda x: -x.value
 		if self.name == '~':
@@ -220,7 +220,7 @@ class InvertedOperator(Operator):
 			req_arg_len = self._normal_operator.req_arg_len)
 
 	@Operator.wrapped_function.getter
-	def getter(self) -> Callable:
+	def wrapped_function(self) -> Callable:
 		return lambda a, b: self._normal_operator.wrapped_function(b, a)
 
 	def deriv(self, du: Variable, *args: [ValuedObj]) -> (ValuedObj, Undefined):

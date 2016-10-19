@@ -13,7 +13,7 @@ class SeededMathFunction(SeededFunction):
 
 
 	@SeededFunction.value.getter
-	def getter(self) -> Any:
+	def value(self) -> Any:
 		for arg in self.args: #async for
 			if arg is Undefined or hasattr(arg, 'hasvalue') and not arg.hasvalue: #await
 				return Undefined
