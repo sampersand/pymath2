@@ -6,15 +6,11 @@ from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 from .seeded_function import SeededFunction
 from pymath2.builtins.objs.operable import Operable
 class SeededOperator(SeededFunction):
-	@staticmethod
-	def _consolidate_args(args):
-		ret = args
-		# if __debug__:
-		# if not hasattr(other, 'unseeded_base_object'):
-		# print('args0:', args[0])
-		return ret
+	def __new__(self, oper: 'Operator', args: tuple) -> 'SeededOperator':
+		# for x in args:
+		return super().__new__(self)
 	def __init__(self, oper: 'Operator', args: tuple) -> None:
-		super().__init__(oper, self._consolidate_args(args))
+		super().__init__(oper, args)
 		if __debug__:
 			from .operator import Operator
 			assert isinstance(self.unseeded_base_object, Operator)
