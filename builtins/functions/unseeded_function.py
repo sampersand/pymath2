@@ -34,11 +34,11 @@ class UnseededFunction(NamedObj):
 	def req_arg_len(self) -> int:
 		return self._req_arg_len if self._req_arg_len is not Undefined else (self.wrapped_function).__code__.co_argcount #await
 
-	def __call__(self, *args_str: tuple) -> seeded_type:
+	def __call__(self, *args: tuple) -> seeded_type:
 		if __debug__:
-			assert len(args_str) == self.req_arg_len or self.req_arg_len == -1,\
-				'length mismatch between {} and {}'.format(len(args_str), self.req_arg_len)
-		return self.seeded_type(self, tuple(self.scrub(arg) for arg in args_str))
+			assert len(args) == self.req_arg_len or self.req_arg_len == -1,\
+				'length mismatch between {} and {}'.format(len(args), self.req_arg_len)
+		return self.seeded_type(self, tuple(self.scrub(arg) for arg in args))
 
 	@staticmethod
 	def _gen_unseeded_str(name, args_str, body_str):

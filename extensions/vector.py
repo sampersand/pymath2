@@ -23,3 +23,6 @@ class Vector(MathList):
 
 	def deriv(self, du):
 		return Vector(*(arg.deriv(du) for arg in self))
+
+	def dot(self, other):
+		return Vector(*(x[0] * x[1] for x in zip(self, other)))

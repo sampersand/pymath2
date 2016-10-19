@@ -22,6 +22,9 @@ class MathObj():
 		elif isinstance(arg, (int, float, bool, complex)):
 			from pymath2.builtins.constant import Constant
 			return Constant(arg)
+		elif isinstance(arg, (tuple, list)):
+			from pymath2.extensions.math_list import MathList
+			return MathList(*arg)
 		elif arg == None:
 			return Undefined
 		else:

@@ -3,10 +3,8 @@ from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 class MathList(list, NamedValuedObj):
 	def scrub(self, arg):
 		ret = super().scrub(arg)
-		print(ret.__class__)
 		if isinstance(ret, Constant):
 			ret = Variable(value = ret.value)
-		print(ret.__class__)
 		return ret
 	def __new__(self, *args, name = Undefined):
 		return super().__new__(self, args)
