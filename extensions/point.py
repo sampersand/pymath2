@@ -3,8 +3,8 @@ from .math_list import MathList
 class AbstractPoint(MathList):
 	pass
 class Point2D(AbstractPoint):
-	def __new__(self, *args, isbase = False):
-		return AbstractPoint.__new__(self, *args)
+	def __new__(cls, *args, isbase = False):
+		return AbstractPoint.__new__(cls, *args)
 	def __init__(self, *args, isbase = False):
 		if __debug__:
 			assert len(args) == 2
@@ -31,8 +31,8 @@ class Point2D(AbstractPoint):
 	y = property(**y())
 
 class Point3D(AbstractPoint):
-	def __new__(self, *args, isbase = False):
-		return AbstractPoint.__new__(self, *args)
+	def __new__(cls, *args, isbase = False):
+		return AbstractPoint.__new__(cls, *args)
 	def __init__(self, *args, isbase = False):
 		if __debug__:
 			assert len(args) == 3

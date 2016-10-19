@@ -6,13 +6,13 @@ from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 from .seeded_function import SeededFunction
 from pymath2.builtins.objs.operable import Operable
 class SeededOperator(SeededFunction):
-	def __new__(self, oper: 'Operator', args: tuple) -> 'SeededOperator':
+	def __new__(cls, oper: 'Operator', args: tuple) -> 'SeededOperator':
 		for arg in args:
 			if isinstance(arg, SeededOperator) and oper is arg.unseeded_base_object:
 				# print(args)
 				# quit()
 				pass
-		return super().__new__(self)
+		return super().__new__(cls)
 	def __init__(self, oper: 'Operator', args: tuple) -> None:
 		super().__init__(oper, args)
 		if __debug__:
