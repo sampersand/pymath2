@@ -7,7 +7,11 @@ from .seeded_function import SeededFunction
 from pymath2.builtins.objs.operable import Operable
 class SeededOperator(SeededFunction):
 	def __new__(self, oper: 'Operator', args: tuple) -> 'SeededOperator':
-		# for x in args:
+		for arg in args:
+			if isinstance(arg, SeededOperator) and oper is arg.unseeded_base_object:
+				# print(args)
+				# quit()
+				pass
 		return super().__new__(self)
 	def __init__(self, oper: 'Operator', args: tuple) -> None:
 		super().__init__(oper, args)

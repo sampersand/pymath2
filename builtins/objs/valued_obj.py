@@ -52,3 +52,8 @@ class ValuedObj(MathObj):
 	@property
 	def no_value(self):
 		return type(self)()
+
+
+	def d(self, other):
+		from pymath2.builtins.derivative import Derivative
+		return Derivative(self) / Derivative(other)

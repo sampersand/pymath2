@@ -48,6 +48,12 @@ class UnseededFunction(NamedObj):
 		return self._gen_unseeded_str(self.name, self.deriv_num, self.args_str, self.body_str)
 
 	def __repr__(self) -> str:
-		return '{}({!r}{})'.format(type(self).__qualname__, self.wrapped_function,
-									repr(self.name) if self.hasname else '')
-		
+		# return '{}({!r}{})'.format(type(self).__qualname__, self.wrapped_function,
+		# 							repr(self.name) if self.hasname else '')
+		return '{}({!r}, {!r}, {!r}, {!r}, {!r}, {!r}, {!r})'.format(type(self.__qualname__),
+				self.wrapped_function,
+				self.name,
+				self.args_str,
+				self.body_str,
+				self.req_arg_len,
+				self.deriv_num)

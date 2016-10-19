@@ -42,12 +42,13 @@ class MathFunction(UnseededFunction, FancyText):
 		self.derivative = derivative
 		if __debug__:
 			assert bool(args_str) == bool(body_str), 'cannot pass args and not a body!'
+
 	@property
 	def req_arg_len(self) -> int:
 		return self._req_arg_len
 
 	def __str__(self) -> str:
-		return self._gen_unseeded_str(self.name, self.deriv_num, self.args_str, self.body_str) if self.fancy.has('args_str') else self.name
+		return super().__str__() if self.fancy.has('args_str') else self.name
 
 	def __repr__(self) -> str:
 		return self.name

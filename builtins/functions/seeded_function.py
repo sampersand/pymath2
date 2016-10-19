@@ -37,7 +37,7 @@ class SeededFunction(NamedValuedObj, Operable):
 		if self.hasvalue:
 			return str(self.value)
 		return '{}{}({})'.format(self.name,
-								 self.unseeded_base_object._prime_str,
+								 self.unseeded_base_object._prime_str(self.unseeded_base_object.deriv_num),
 								 str(self.args) if self.args is Undefined else ', '.join(str(x) for x in self.args))
 
 	def __repr__(self) -> str:

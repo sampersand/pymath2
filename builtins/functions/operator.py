@@ -16,7 +16,7 @@ class Operator(UnseededFunction, NamedObj):
 				 priority: int,
 				 wrapped_function: Callable = Undefined,
 				 req_arg_len = Undefined) -> None:
-		UnseededFunction.__init__(self, wrapped_function, req_arg_len = req_arg_len)
+		UnseededFunction.__init__(self, wrapped_function, req_arg_len = -1)
 		NamedObj.__init__(self, name)
 		self.priority = priority
 
@@ -30,8 +30,14 @@ class Operator(UnseededFunction, NamedObj):
 		return self.name
 
 	def __repr__(self) -> str:
+		print(type(self))
+		print(repr(self.wrapped_function))
+		return (repr(self.wrapped_function))
 		return '{}({!r}, {!r}, {!r}, {!r})'.format(type(self).__qualname__,
-			self.name, self.priority, self.wrapped_function, self.req_arg_len)
+			self.name,
+			self.priority,
+			self.wrapped_function,
+			self.req_arg_len)
 
 	def is_lower_precedence(self, other: UnseededFunction) -> bool:
 		if not hasattr(other, 'priority'):
@@ -58,12 +64,12 @@ class MultiArgOperator(Operator):
 		for arg in args[1:]:
 			last_res = self.scrub(self.func_for_two_args(last_res, arg))
 		return last_res
-	@property
+
+	@property.getter
 	def wrapped_function(self):
 		if __debug__:
 			assert self.func_for_two_args is not Undefined
 		return self._reduce_args
-	# def __str__(self)
 
 class AddSubOperator(MultiArgOperator):
 	def __init__(self, name: str) -> None:
@@ -93,6 +99,7 @@ class AddSubOperator(MultiArgOperator):
 
 	@property
 	def _is_plus(self) -> bool:
+		print('isplus')
 		return self.name == '+'
 
 	def deriv(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
@@ -109,8 +116,6 @@ class MulOperator(MultiArgOperator):
 		lv = (l.value) #future
 		rv = (r.value) #future
 		return lv * rv #await
-
-	# func_for_two_args = staticmethod(lambda l, r: l.value * r.value)
 
 	def __init__(self) -> None:
 		super().__init__('*', 2)
@@ -186,17 +191,13 @@ class UnaryOper(Operator):
 		super().__init__(name, 1, req_arg_len = 1)
 		if __debug__:
 			assert self.name in set('+-~')
-	@property
+	@property.getter
 	def wrapped_function(self) -> Callable:
 		if self.name == '-':
 			return lambda x: -x.value
 		if self.name == '~':
 			return lambda x: ~x.value
 		return lambda x: +x.value
-
-	@wrapped_function.setter
-	def wrapped_function(self, value) -> None:
-		pass
 
 	def deriv(self, du: Variable, *args: [ValuedObj]) -> (ValuedObj, Undefined):
 		if __debug__:
@@ -206,6 +207,7 @@ class UnaryOper(Operator):
 		if self.name == '+':
 			return +args[0].deriv(du)
 		return super().deriv(du, args)
+
 class InvertedOperator(Operator):
 	is_inverted = True
 	def __init__(self, _normal_operator: Operator) -> None:
@@ -214,11 +216,11 @@ class InvertedOperator(Operator):
 		super().__init__(self._normal_operator.name,
 			self._normal_operator.priority,
 			req_arg_len = self._normal_operator.req_arg_len)
-	@property
+	@property.getter
 	def wrapped_function(self) -> Callable:
 		return lambda a, b: self._normal_operator.wrapped_function(b, a)
 
-	@wrapped_function.setter
+	@wrapped_function.setter.getter
 	def wrapped_function(self, value) -> None:
 		pass
 
