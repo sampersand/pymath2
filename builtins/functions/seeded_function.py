@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, await_result
+from pymath2 import Undefined, await_result, future
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.operable import Operable
 from pymath2.builtins.objs.valued_obj import ValuedObj
@@ -21,6 +21,12 @@ class SeededFunction(NamedValuedObj, Operable):
 	async def value(self) -> Any:
 		if self.args == Undefined:
 			return Undefined
+		wrap_func = self.unseeded_base_object.wrapped_function
+		wrap_func = await wrap_func
+		called = wrap_func(*self.args)
+		# called = await called
+		scrubbed = self.scrub(called)
+		return scrubbed
 		return self.scrub(await (await self.unseeded_base_object.wrapped_function)(*self.args))
 
 	@property

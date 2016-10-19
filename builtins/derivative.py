@@ -1,6 +1,6 @@
 import asyncio
 from typing import Any
-from pymath2 import Undefined, future
+from pymath2 import Undefined, future, await_result
 from .objs.math_obj import MathObj
 from .functions.unseeded_function import UnseededFunction
 from .functions.seeded_function import SeededFunction
@@ -35,18 +35,15 @@ class Derivative(NamedValuedObj):
 	def __init__(self, value: NamedValuedObj) -> None:
 		super().__init__(name = 'd{}'.format(value.name), value = value)
 		# print(type(value), isinstance(value, SeededFunction))
-	def __truediv__(self, other: 'Derivative') -> 'SeededDerivative':
+	async def __truediv__(self, other: 'Derivative') -> 'SeededDerivative':
 		if not isinstance(other, Derivative):
 			return NotImplemented
-		return self._gen_derivative(other)
+		return await self._gen_derivative(other)
 
-	def _gen_derivative(self, other):
-		print('todo: make _gen_derivative async')
+	async def _gen_derivative(self, other):
 		sv = future(self.value)
 		ov = future(other.value)
-		# ndfuture = future((await sv).deriv(await ov))
-		ndfuture = await_result(sv).deriv(await_result(ov))
-		return await_result(ndfuture)
+		return await ((await sv).deriv(await ov))
 
 	def __str__(self) -> str:
 		return self.name

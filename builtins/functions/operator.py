@@ -189,11 +189,11 @@ class InvertedOperator(Operator):
 	is_inverted = True
 	def __init__(self, normal_operator: Operator) -> None:
 		self.normal_operator = normal_operator
+		import asyncio
 		super().__init__(self.normal_operator.name,
 			self.normal_operator.priority,
-			await_result(self.normal_operator.wrapped_function),
-			await_result(self.normal_operator.req_arg_len))
-
+			await_result(self.normal_operator.wrapped_function, asyncio.new_event_loop()),
+			await_result(self.normal_operator.req_arg_len, asyncio.new_event_loop()))
 	@property
 	async def wrapped_function(self) -> Callable:
 		return await self.normal_operator.wrapped_function
