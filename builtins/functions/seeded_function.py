@@ -49,47 +49,54 @@ class SeededFunction(NamedValuedObj, Operable):
 		return self.hasvalue #await #maybe something with du? 
 
 
+	# def deriv(self, du: Variable) -> 'SeededFunction':
+	# 	derviative = (self.value).deriv(du)
+	# 	print(derviative)
+	# 	quit()
+
+
+	@staticmethod
+	def _gen_wrapped_func(val, du):
+		deriv = val.deriv(du)
+		# print(deriv)
+		# b = deriv.unseeded_base_object.wrapped_function
+		# print(b)
+		# quit()
+		# def y(): pass
+		# import types
+		# yc = y.__code__
+		# y_code = types.CodeType(deriv.unseeded_base_object.req_arg_len, 0,
+		#             yc.co_nlocals,
+		#             yc.co_stacksize,
+		#             yc.co_flags,
+		#             yc.co_code,
+		#             yc.co_consts,
+		#             yc.co_names,
+		#             yc.co_varnames,
+		#             yc.co_filename,
+		#             'f',
+		#             yc.co_firstlineno,
+		#             yc.co_lnotab)
+		# print('I\'m here')
+
+		# return types.FunctionType(y_code, y.__globals__, 'f')
+		return lambda *args: deriv
+
+	def deriv(self, du: Variable) -> 'UnseededFunction':
+		from .unseeded_function import UnseededFunction
+
+		req_arg_len = self.unseeded_base_object.req_arg_len #future
+		wrapd_func = self._gen_wrapped_func(self.value, du)
+		uns_func =  UnseededFunction(wrapd_func, #await
+						      name = self.name,
+						      deriv_num = self.unseeded_base_object.deriv_num + 1,
+						      req_arg_len = req_arg_len, #await
+						      args_str = self.unseeded_base_object.args_str,
+						      body_str = str(wrapd_func))
+		return uns_func
+		# print(derived_function)
 	def deriv(self, du: Variable) -> 'SeededFunction':
-		return (self.value).deriv(du)
-
-	# def _get_derived_function(self, du):
-	# 	# print('boilerplate func: _get_derived_function')
-	# 	deriv = (self.value).deriv(du) #double await
-	# 	def y(): pass
-	# 	# import types
-	# 	# y_code = types.CodeType(deriv.unseeded_base_object.req_arg_len, 0,
-	# 	#             y.__code__.co_nlocals,
-	# 	#             y.__code__.co_stacksize,
-	# 	#             y.__code__.co_flags,
-	# 	#             y.__code__.co_code,
-	# 	#             y.__code__.co_consts,
-	# 	#             y.__code__.co_names,
-	# 	#             y.__code__.co_varnames,
-	# 	#             y.__code__.co_filename,
-	# 	#             'f',
-	# 	#             y.__code__.co_firstlineno,
-	# 	#             y.__code__.co_lnotab)
-	# 	print('I\'m here')
-
-	# 	# return types.FunctionType(y_code, y.__globals__, 'f')
-	# 	return lambda *args: deriv
-
-	# def deriv(self, du: Variable) -> 'UnseededFunction':
-	# 	from .unseeded_function import UnseededFunction
-	# 	# assert 0
-	# 	wrapd_func = self._get_derived_function(du) #future
-	# 	req_arg_len = self.unseeded_base_object.req_arg_len #future
-	# 	uns_func =  UnseededFunction(wrapd_func, #await
-	# 					      name = self.name,
-	# 					      deriv_num = self.unseeded_base_object.deriv_num + 1,
-	# 					      req_arg_len = req_arg_len, #await
-	# 					      args_str = self.unseeded_base_object.args_str)
-	# 	# print(wrapd_func, uns_func)
-	# 	# print(uns_func.req_arg_len)
-	# 	seed_func = uns_func(*self.args)
-	# 	return seed_func
-	# 	# print(derived_function)
-
+		return self.value.deriv(du)
 
 
 

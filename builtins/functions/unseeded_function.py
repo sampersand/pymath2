@@ -24,11 +24,11 @@ class UnseededFunction(NamedObj):
 		return locals()
 	wrapped_function = property(**wrapped_function())
 
-	@property
-	def _prime_str(self):
-		if self.deriv_num > 3:
-			return '^{}'.format(self.deriv_num)
-		return "'" * self.deriv_num
+	@staticmethod
+	def _prime_str(deriv_num):
+		if deriv_num > 3:
+			return '^{}'.format(deriv_num)
+		return "'" * deriv_num
 
 	@property
 	def req_arg_len(self) -> int:
@@ -41,11 +41,11 @@ class UnseededFunction(NamedObj):
 		return self.seeded_type(self, tuple(self.scrub(arg) for arg in args))
 
 	@staticmethod
-	def _gen_unseeded_str(name, args_str, body_str):
-		return '{}({}) = {}'.format(name, args_str, body_str)
+	def _gen_unseeded_str(name, deriv_num, args_str, body_str):
+		return '{}{}({}) = {}'.format(name, UnseededFunction._prime_str(deriv_num), args_str, body_str)
 
 	def __str__(self) -> str:
-		return self._gen_unseeded_str(self.name, self.args_str, self.body_str)
+		return self._gen_unseeded_str(self.name, self.deriv_num, self.args_str, self.body_str)
 
 	def __repr__(self) -> str:
 		return '{}({!r}{})'.format(type(self).__qualname__, self.wrapped_function,

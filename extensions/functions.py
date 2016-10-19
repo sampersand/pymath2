@@ -47,7 +47,7 @@ class MathFunction(UnseededFunction, FancyText):
 		return self._req_arg_len
 
 	def __str__(self) -> str:
-		return self._gen_unseeded_str(self.name, self.args_str, self.body_str) if self.fancy.has('args_str') else self.name
+		return self._gen_unseeded_str(self.name, self.deriv_num, self.args_str, self.body_str) if self.fancy.has('args_str') else self.name
 
 	def __repr__(self) -> str:
 		return self.name

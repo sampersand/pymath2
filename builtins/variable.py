@@ -7,7 +7,8 @@ class Variable(NamedValuedObj, Operable):
 		super().__init__(name = name, value = value)
 
 	def isconst(self, du):
-		return self != du
+		return self is not du and self.name != du.name
+		# return self != du
 
 	def deriv(self, du: 'Variable') -> (0, 1):
 		return int(not self.isconst(du))

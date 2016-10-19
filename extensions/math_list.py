@@ -1,6 +1,7 @@
 from pymath2 import Undefined, Constant, Variable
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 class MathList(list, NamedValuedObj):
+
 	def scrub(self, arg):
 		ret = super().scrub(arg)
 		if isinstance(ret, Constant):

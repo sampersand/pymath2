@@ -23,8 +23,8 @@ class Operator(UnseededFunction, NamedObj):
 	@property
 	def func_name(self) -> str:
 		if __debug__:
-			assert len([name for name, oper in opers if self is oper]) == 1
-		return next(name for name, oper in opers if self is oper)
+			assert len([name for name, oper in opers.items() if self is oper]) == 1
+		return next(name for name, oper in opers.items() if self is oper)
 
 	def __str__(self) -> str:
 		return self.name
