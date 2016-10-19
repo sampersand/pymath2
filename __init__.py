@@ -1,4 +1,4 @@
-from .utils import await_result, future
+# from .utils import await_result, future
 from .builtins.undefined import Undefined
 from .builtins.constant import Constant as const
 from .builtins.variable import Variable as var

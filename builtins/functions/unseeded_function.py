@@ -1,5 +1,5 @@
 from typing import Callable
-from pymath2 import Undefined, await_result
+from pymath2 import Undefined
 from pymath2.builtins.objs.named_obj import NamedObj
 from .seeded_function import SeededFunction
 class UnseededFunction(NamedObj):
@@ -17,7 +17,7 @@ class UnseededFunction(NamedObj):
 		self.deriv_num = deriv_num
 
 	def wrapped_function():
-		async def fget(self) -> Callable:
+		def fget(self) -> Callable:
 			return self._wrapped_function
 		def fset(self, val: Callable) -> None:
 			self._wrapped_function = val
@@ -31,13 +31,13 @@ class UnseededFunction(NamedObj):
 		return "'" * self.deriv_num
 
 	@property
-	async def req_arg_len(self) -> int:
-		return self._req_arg_len if self._req_arg_len is not Undefined else (await self.wrapped_function).__code__.co_argcount
+	def req_arg_len(self) -> int:
+		return self._req_arg_len if self._req_arg_len is not Undefined else (self.wrapped_function).__code__.co_argcount #await
 
 	def __call__(self, *args_str: tuple) -> seeded_type:
-		# if __debug__:
-		# 	assert len(args_str) == await_result(self.req_arg_len) or await_result(self.req_arg_len) == -1,\
-		# 		'length mismatch between {} and {}'.format(len(args_str), await_result(self.req_arg_len))
+		if __debug__:
+			assert len(args_str) == self.req_arg_len or self.req_arg_len == -1,\
+				'length mismatch between {} and {}'.format(len(args_str), self.req_arg_len)
 		return self.seeded_type(self, tuple(self.scrub(arg) for arg in args_str))
 
 	@staticmethod
@@ -48,6 +48,6 @@ class UnseededFunction(NamedObj):
 		return self._gen_unseeded_str(self.name, self.args_str, self.body_str)
 
 	def __repr__(self) -> str:
-		return '{}({!r}{})'.format(type(self).__qualname__, await_result(self.wrapped_function),
+		return '{}({!r}{})'.format(type(self).__qualname__, self.wrapped_function,
 									repr(self.name) if self.hasname else '')
 		

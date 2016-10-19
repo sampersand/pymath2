@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, await_result
+from pymath2 import Undefined
 from pymath2.builtins.objs.math_obj import MathObj
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
@@ -40,9 +40,9 @@ class SeededOperator(SeededFunction):
 		return '{} {} {}'.format(l, self.name, r)
 
 	def __str__(self) -> str:
-		if await_result(self.hasvalue):
-			return str(await_result(self.value))
-		req_arg_len = await_result(self.unseeded_base_object.req_arg_len)
+		if self.hasvalue:
+			return str(self.value)
+		req_arg_len = self.unseeded_base_object.req_arg_len
 		if req_arg_len == 1:
 			return '{}{}'.format(self.name, self.possibly_surround_in_parens(self.args[0]))
 		elif req_arg_len == 2:
@@ -53,10 +53,10 @@ class SeededOperator(SeededFunction):
 		else:
 			from pymath2.builtins.exceptions.pymath2_error import PyMath2Error
 			raise PyMath2Error('How does an operator have {} required arguments?'.
-								format(await_result(self.unseeded_base_object.req_arg_len)))
+								format(self.unseeded_base_object.req_arg_len))
 
-	async def deriv(self, du: Variable) -> ('ValuedObj', Undefined):
-		return await self.unseeded_base_object.deriv(du, *self.args)
+	def deriv(self, du: Variable) -> ('ValuedObj', Undefined):
+		return self.unseeded_base_object.deriv(du, *self.args) #await
 
 
 

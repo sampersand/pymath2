@@ -13,17 +13,17 @@ class SeededMathFunction(SeededFunction):
 
 
 	@property
-	async def value(self) -> Any:
-		async for arg in self.args:
-			if arg is Undefined or hasattr(arg, 'hasvalue') and not await arg.hasvalue:
+	def value(self) -> Any:
+		for arg in self.args: #async for
+			if arg is Undefined or hasattr(arg, 'hasvalue') and not arg.hasvalue: #await
 				return Undefined
-		return await super().value
+		return super().value #await
 
 
-	async def deriv(self, du: Variable) -> SeededFunction:
+	def deriv(self, du: Variable) -> SeededFunction:
 		if __debug__:
 			assert self.unseeded_base_object.derivative is not Undefined, 'No known way to take the derivative of ' + str(self)
-		return await self.unseeded_base_object.derivative(self, *self.args, du)
+		return self.unseeded_base_object.derivative(self, *self.args, du) #await
 
 class MathFunction(UnseededFunction, FancyText):
 	seeded_type = SeededMathFunction
@@ -43,7 +43,7 @@ class MathFunction(UnseededFunction, FancyText):
 		if __debug__:
 			assert bool(args_str) == bool(body_str), 'cannot pass args and not a body!'
 	@property
-	async def req_arg_len(self) -> int:
+	def req_arg_len(self) -> int:
 		return self._req_arg_len
 
 	def __str__(self) -> str:
@@ -68,31 +68,31 @@ gamma = MathFunction(('gamma', 'Γ'), math.gamma)
 Γ = gamma
 
 # future: async lambda 
-async def derive(self, a, du): return cos(a) * await a.deriv(du)
+def derive(self, a, du): return cos(a) * a.deriv(du) #await
 sin.derivative = derive
 
 # future: async lambda 
-async def derive(self, a, du): return -sin(a) * await a.deriv(du)
+def derive(self, a, du): return -sin(a) * a.deriv(du) #await
 cos.derivative = derive
 
 # future: async lambda 
-async def derive(self, a, du): return sec(a) ** 2 * await a.deriv(du)
+def derive(self, a, du): return sec(a) ** 2 * a.deriv(du) #await
 tan.derivative = derive
 
 # future: async lambda 
-async def derive(self, a, du): return -csc(a) * cot(a) * await a.deriv(du)
+def derive(self, a, du): return -csc(a) * cot(a) * a.deriv(du) #await
 csc.derivative = derive
 
 # future: async lambda 
-async def derive(self, a, du): return sec(a) * tan(a) * await a.deriv(du)
+def derive(self, a, du): return sec(a) * tan(a) * a.deriv(du) #await
 sec.derivative = derive
 
 # future: async lambda 
-async def derive(self, a, du): return -csc(a) ** 2 * await a.deriv(du)
+def derive(self, a, du): return -csc(a) ** 2 * a.deriv(du) #await
 cot.derivative = derive
 
 # future: async lambda 
-async def derive(self, a, du): return await a.deriv(du) / a
+def derive(self, a, du): return a.deriv(du) / a #await
 ln.derivative = derive
 
 del derive

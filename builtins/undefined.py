@@ -51,13 +51,13 @@ class UndefinedClass():
 	def __await__(self) -> 'self': return self
 
 	@property
-	async def hasvalue(self) -> bool:
+	def hasvalue(self) -> bool:
 		return False
 	@property
-	async def value(self) -> 'self':
+	def value(self) -> 'self':
 		return self
 
-	async def deriv(self, du) -> 'self': return self
+	def deriv(self, du) -> 'self': return self
 Undefined = UndefinedClass()
 
 

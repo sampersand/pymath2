@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, await_result, future
+from pymath2 import Undefined
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.operable import Operable
 from pymath2.builtins.objs.valued_obj import ValuedObj
@@ -18,24 +18,24 @@ class SeededFunction(NamedValuedObj, Operable):
 		return self._name if self._name is not Undefined else self.unseeded_base_object.name
 
 	@property
-	async def value(self) -> Any:
+	def value(self) -> Any:
 		if self.args == Undefined:
 			return Undefined
 		wrap_func = self.unseeded_base_object.wrapped_function
-		wrap_func = await wrap_func
+		wrap_func = wrap_func #await
 		called = wrap_func(*self.args)
-		# called = await called
+		# called = called #await
 		scrubbed = self.scrub(called)
 		return scrubbed
-		return self.scrub(await (await self.unseeded_base_object.wrapped_function)(*self.args))
+		return self.scrub(self.unseeded_base_object.wrapped_function(*self.args)) #double await
 
 	@property
-	async def hasvalue(self) -> Any:
-		return await (await self.value).hasvalue
+	def hasvalue(self) -> Any:
+		return (self.value).hasvalue #double await
 
 	def __str__(self) -> str:
-		if await_result(self.hasvalue):
-			return str(await_result(self.value))
+		if self.hasvalue:
+			return str(self.value)
 		return '{}{}({})'.format(self.name,
 								 self.unseeded_base_object._prime_str,
 								 str(self.args) if self.args is Undefined else ', '.join(str(x) for x in self.args))
@@ -45,13 +45,13 @@ class SeededFunction(NamedValuedObj, Operable):
 			', {!r}'.format(self.args) if self.args is not Undefined else '',
 			', {!r}'.format(self.args) if self.name is not Undefined else '',)
 
-	async def isconst(self, du):
-		return await self.hasvalue #maybe something with du?
+	def isconst(self, du):
+		return self.hasvalue #await #maybe something with du? 
 
 
-	async def _get_derived_function(self, du):
+	def _get_derived_function(self, du):
 		# print('boilerplate func: _get_derived_function')
-		deriv = await (await self.value).deriv(du)
+		deriv = (self.value).deriv(du) #double await
 		def y(): pass
 		# import types
 		# y_code = types.CodeType(deriv.unseeded_base_object.req_arg_len, 0,
@@ -71,15 +71,15 @@ class SeededFunction(NamedValuedObj, Operable):
 		# return types.FunctionType(y_code, y.__globals__, 'f')
 		return lambda *args: deriv
 
-	async def deriv(self, du: Variable) -> 'UnseededFunction':
+	def deriv(self, du: Variable) -> 'UnseededFunction':
 		from .unseeded_function import UnseededFunction
 		# assert 0
-		wrapd_func = future(self._get_derived_function(du))
-		req_arg_len = future(self.unseeded_base_object.req_arg_len)
-		uns_func =  UnseededFunction(await wrapd_func, 
+		wrapd_func = self._get_derived_function(du) #future
+		req_arg_len = self.unseeded_base_object.req_arg_len #future
+		uns_func =  UnseededFunction(wrapd_func, #await
 						      name = self.name,
 						      deriv_num = self.unseeded_base_object.deriv_num + 1,
-						      req_arg_len = await req_arg_len, 
+						      req_arg_len = req_arg_len, #await
 						      args_str = self.unseeded_base_object.args_str)
 		# print(wrapd_func, uns_func)
 		# print(uns_func.req_arg_len)
