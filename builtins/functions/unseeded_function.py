@@ -8,7 +8,7 @@ class UnseededFunction(NamedObj):
 				 args_str: str = Undefined, body_str: str = Undefined,
 				 req_arg_len = Undefined, deriv_num = 0) -> None:
 		super().__init__(name)
-		self._wrapped_function = wrapped_function
+		self.wrapped_function = wrapped_function
 		if isinstance(args_str, (list, tuple)):
 			args_str = ', '.join(str(x) for x in args_str)
 		self.args_str = args_str
@@ -16,14 +16,14 @@ class UnseededFunction(NamedObj):
 		self._req_arg_len = req_arg_len
 		self.deriv_num = deriv_num
 
-	def wrapped_function():
-		def fget(self) -> Callable:
-			return self._wrapped_function
-		def fset(self, val: Callable) -> None:
-			self._wrapped_function = val
-		return locals()
-	wrapped_function = property(**wrapped_function())
+	@property
+	def wrapped_function(self) -> Callable:
+		return self._wrapped_function
 
+	@wrapped_function.setter
+	def setter(self, val: Callable) -> None:
+		self._wrapped_function = val
+	
 	@staticmethod
 	def _prime_str(deriv_num):
 		if deriv_num > 3:

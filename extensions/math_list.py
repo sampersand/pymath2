@@ -14,10 +14,11 @@ class MathList(list, NamedValuedObj):
 		list.__init__(self, list(self.scrub(x) for x in inps))
 		NamedValuedObj.__init__(self, name = name)
 
-	@property
+	@NamedValuedObj.hasvalue.getter
 	def hasvalue(self):
 		return all(x.hasvalue for x in self)
-	@property
+
+	@NamedValuedObj.value.getter
 	def value(self):
 		if not self.hasvalue:
 			return Undefined

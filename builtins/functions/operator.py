@@ -52,6 +52,7 @@ class Operator(UnseededFunction, NamedObj):
 	# 	return None
 
 class MultiArgOperator(Operator):
+
 	func_for_two_args = Undefined
 
 	def __init__(self, name: str, priority: int) -> None:
@@ -65,8 +66,8 @@ class MultiArgOperator(Operator):
 			last_res = self.scrub(self.func_for_two_args(last_res, arg))
 		return last_res
 
-	@property.getter
-	def wrapped_function(self):
+	@Operator.wrapped_function.getter
+	def getter(self):
 		if __debug__:
 			assert self.func_for_two_args is not Undefined
 		return self._reduce_args
@@ -191,8 +192,9 @@ class UnaryOper(Operator):
 		super().__init__(name, 1, req_arg_len = 1)
 		if __debug__:
 			assert self.name in set('+-~')
-	@property.getter
-	def wrapped_function(self) -> Callable:
+
+	@Operator.wrapped_function.getter
+	def getter(self) -> Callable:
 		if self.name == '-':
 			return lambda x: -x.value
 		if self.name == '~':
@@ -216,13 +218,10 @@ class InvertedOperator(Operator):
 		super().__init__(self._normal_operator.name,
 			self._normal_operator.priority,
 			req_arg_len = self._normal_operator.req_arg_len)
-	@property.getter
-	def wrapped_function(self) -> Callable:
-		return lambda a, b: self._normal_operator.wrapped_function(b, a)
 
-	@wrapped_function.setter.getter
-	def wrapped_function(self, value) -> None:
-		pass
+	@Operator.wrapped_function.getter
+	def getter(self) -> Callable:
+		return lambda a, b: self._normal_operator.wrapped_function(b, a)
 
 	def deriv(self, du: Variable, *args: [ValuedObj]) -> (ValuedObj, Undefined):
 		return self._normal_operator.deriv(du, *args[::-1]) #haha! that's how you invert it
@@ -275,50 +274,50 @@ opers.update({
 
 # future: async lambda
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv // rv #future
-opers['__floordiv__'].wrapped_function = wrap_func
+opers['__floordiv__']._wrapped_function = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv % rv #future
-opers['__mod__'].wrapped_function = wrap_func
+opers['__mod__']._wrapped_function = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv @ rv #future
-opers['__matmul__'].wrapped_function = wrap_func
+opers['__matmul__']._wrapped_function = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv & rv #future
-opers['__and__'].wrapped_function = wrap_func
+opers['__and__']._wrapped_function = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv | rv #future
-opers['__or__'].wrapped_function = wrap_func
+opers['__or__']._wrapped_function = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv ^ rv #future
-opers['__xor__'].wrapped_function = wrap_func
+opers['__xor__']._wrapped_function = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv << rv #future
-opers['__lshift__'].wrapped_function = wrap_func
+opers['__lshift__']._wrapped_function = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv >> rv #future
-opers['__rshift__'].wrapped_function = wrap_func
+opers['__rshift__']._wrapped_function = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv < rv #future
-opers['__lt__'].wrapped_function = wrap_func
+opers['__lt__']._wrapped_function = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv > rv #future
-opers['__gt__'].wrapped_function = wrap_func
+opers['__gt__']._wrapped_function = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv <= rv #future
-opers['__le__'].wrapped_function = wrap_func
+opers['__le__']._wrapped_function = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv >= rv #future
-opers['__gt__'].wrapped_function = wrap_func
+opers['__gt__']._wrapped_function = wrap_func
 
 
 def wrap_func(x): return -x.value
-opers['__neg__'].wrapped_function = wrap_func
+opers['__neg__']._wrapped_function = wrap_func
 
 def wrap_func(x): return +x.value
-opers['__pos__'].wrapped_function = wrap_func
+opers['__pos__']._wrapped_function = wrap_func
 
 def wrap_func(x): return ~x.value
-opers['__invert__'].wrapped_function = wrap_func
+opers['__invert__']._wrapped_function = wrap_func
 
 
 del wrap_func

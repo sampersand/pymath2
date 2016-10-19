@@ -12,7 +12,3 @@ class Constant(ValuedObj, Operable):
 	def __repr__(self) -> str:
 		return '{}({})'.format(type(self).__qualname__,
 			repr(self.value) if self.hasvalue else '')
-
-	@property
-	def no_value(self):
-		return self

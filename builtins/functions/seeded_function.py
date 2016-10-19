@@ -13,11 +13,11 @@ class SeededFunction(NamedValuedObj, Operable):
 		self.unseeded_base_object = unseeded_instance
 		self.args = args
 
-	@property
+	@NamedValuedObj.name.getter
 	def name(self):
 		return self._name if self._name is not Undefined else self.unseeded_base_object.name
 
-	@property
+	@NamedValuedObj.value.getter
 	def value(self) -> Any:
 		if self.args == Undefined:
 			return Undefined
@@ -29,7 +29,7 @@ class SeededFunction(NamedValuedObj, Operable):
 		return scrubbed
 		return self.scrub(self.unseeded_base_object.wrapped_function(*self.args)) #double await
 
-	@property
+	@NamedValuedObj.hasvalue.getter
 	def hasvalue(self) -> Any:
 		return (self.value).hasvalue #double await
 

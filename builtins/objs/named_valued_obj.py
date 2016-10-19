@@ -22,7 +22,4 @@ class NamedValuedObj(NamedObj, ValuedObj):
 			return True
 		return ValuedObj.__eq__(self, other) and self.value is not Undefined
 
-	@property
-	def no_value(self):
-		return type(self)(name = self.name)
 

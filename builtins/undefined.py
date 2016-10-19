@@ -53,6 +53,7 @@ class UndefinedClass():
 	@property
 	def hasvalue(self) -> bool:
 		return False
+
 	@property
 	def value(self) -> 'self':
 		return self

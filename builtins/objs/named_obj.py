@@ -6,14 +6,12 @@ class NamedObj(MathObj):
 		super().__init__()
 		self._name = name
 
-	def name() -> dict:
-		def fget(self) -> (str, Undefined):
-			return self._name
-			# return self._name if self.hasname else super().__str__(prefix = 'unnamed')
-		def fset(self, val: str) -> None:
-			self._name = val
-		return locals()
-	name = property(**name())
+	@property
+	def name(self) -> (str, Undefined):
+		return self._name
+	@name.setter
+	def setter(self, val: str) -> None:
+		self._name = val
 
 	@property
 	def hasname(self) -> bool:

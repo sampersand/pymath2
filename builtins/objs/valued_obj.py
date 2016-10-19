@@ -6,15 +6,16 @@ class ValuedObj(MathObj):
 		MathObj.__init__(self)
 		self._value = value
 
-	def value() -> dict:
-		def fget(self) -> (Any, Undefined):
-			return self._value
-		def fset(self, val: Any) -> None:
-			self._value = val
-		def fdel(self) -> None:
-			self._value = Undefined
-		return locals()
-	value = property(**value())
+	@property
+	def value(self) -> (Any, Undefined):
+		return self._value
+	@value.setter
+	def setter(self, val: Any) -> None:
+		self._value = val
+
+	@value.deleter
+	def fdel(self) -> None:
+		self._value = Undefined
 
 	def isconst(self, du):
 		return self != du
@@ -29,14 +30,20 @@ class ValuedObj(MathObj):
 	def __repr__(self) -> str:
 		return '{}({!r})'.format(type(self).__qualname__, self.value)
 
+
+
 	def __abs__(self) -> float:
 		return abs(float(self))
+
 	def __bool__(self) -> bool:
 		return bool(self.value)
+
 	def __int__(self) -> int:
 		return int(self.value)
+
 	def __float__(self) -> float:
 		return float(self.value)
+
 	def __complex__(self) -> complex:
 		return complex(self.value)
 
@@ -48,10 +55,6 @@ class ValuedObj(MathObj):
 
 	def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
 		return Undefined
-
-	@property
-	def no_value(self):
-		return type(self)()
 
 
 	def d(self, other):

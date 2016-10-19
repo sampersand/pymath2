@@ -12,8 +12,8 @@ class SeededMathFunction(SeededFunction):
 		super().__init__(math_instance, args)
 
 
-	@property
-	def value(self) -> Any:
+	@SeededFunction.value.getter
+	def getter(self) -> Any:
 		for arg in self.args: #async for
 			if arg is Undefined or hasattr(arg, 'hasvalue') and not arg.hasvalue: #await
 				return Undefined
