@@ -6,8 +6,12 @@ class Variable(NamedValuedObj, Operable):
 	def __init__(self, name: str = Undefined, value: Any = Undefined) -> None:
 		super().__init__(name = name, value = value)
 
-	def deriv(self, du: 'Variable') -> (0, 1, 'self'):
+	def isconst(self, du):
+		return self != du
+
+	def deriv(self, du: 'Variable') -> (0, 1):
 		return int(not self.isconst(du))
+
 		# return self if self == du else int(not self.isconst(du))
 	def __repr__(self) -> str:
 		return '{}({})'.format(type(self).__qualname__, ', '.join(repr(x) for x in 

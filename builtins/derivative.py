@@ -33,7 +33,7 @@ from .objs.named_valued_obj import NamedValuedObj
 class Derivative(NamedValuedObj):
 
 	def __init__(self, value: NamedValuedObj) -> None:
-		super().__init__(name = 'd{}'.format(value.name), value = value)
+		super().__init__(name = 'd{}'.format(value.name if hasattr(value, 'name') else value.value), value = value)
 
 	def __truediv__(self, other: 'Derivative') -> 'SeededDerivative':
 		if not isinstance(other, Derivative):

@@ -22,6 +22,8 @@ class MathObj():
 		elif isinstance(arg, (int, float, bool, complex)):
 			from pymath2.builtins.constant import Constant
 			return Constant(arg)
+		elif arg == None:
+			return Undefined
 		else:
 			raise UnknownTypeError(type(arg))
 

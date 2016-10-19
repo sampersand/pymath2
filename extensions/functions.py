@@ -16,6 +16,7 @@ class SeededMathFunction(SeededFunction):
 	def value(self) -> Any:
 		for arg in self.args: #async for
 			if arg is Undefined or hasattr(arg, 'hasvalue') and not arg.hasvalue: #await
+				print('undefined: ', arg)
 				return Undefined
 		return super().value #await
 

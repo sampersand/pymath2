@@ -49,7 +49,7 @@ class SeededOperator(SeededFunction):
 			return self._bool_oper_str(*(self.args if not self.unseeded_base_object.is_inverted else self.args[::-1]))
 		elif req_arg_len == -1:
 			from functools import reduce
-			return reduce(lambda a, b: self._bool_oper_str(a, b), self.args)
+			return str(reduce(lambda a, b: self._bool_oper_str(a, b), self.args))
 		else:
 			from pymath2.builtins.exceptions.pymath2_error import PyMath2Error
 			raise PyMath2Error('How does an operator have {} required arguments?'.

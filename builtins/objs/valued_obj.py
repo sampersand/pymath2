@@ -48,3 +48,7 @@ class ValuedObj(MathObj):
 
 	def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
 		return Undefined
+
+	@property
+	def no_value(self):
+		return type(self)()

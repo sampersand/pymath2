@@ -16,6 +16,13 @@ class NamedValuedObj(NamedObj, ValuedObj):
 					self.value)
 
 	def __eq__(self, other):
-		return NamedObj.__eq__(self, other) or ValuedObj.__eq__(self, other)
+		if self.name is Undefined:
+			return self is other
+		if NamedObj.__eq__(self, other) and self.name is not Undefined:
+			return True
+		return ValuedObj.__eq__(self, other) and self.value is not Undefined
 
+	@property
+	def no_value(self):
+		return type(self)(name = self.name)
 

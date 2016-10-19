@@ -39,7 +39,7 @@ class Operator(UnseededFunction, NamedObj):
 		return self.priority < other.priority
 
 	def deriv(self, du: Variable, *args: (ValuedObj, )) -> ('ValuedObj', Undefined):
-		raise ValueError('What error type? TODO: find this out. But this class doesn\'t have a deriv defined')
+		raise ValueError('What error type? TODO: find this out. But this class doesn\'t have a deriv defined: {}'.format(self.func_name))
 		# return Undefined
 
 	# def simplify(self, *args):
@@ -181,26 +181,49 @@ class PowOperator(MultiArgOperator):
 			return b ** p * lnb * pd #await
 		return b ** p * (bd * p / b + pd * lnb) #await
 
-
-class InvertedOperator(Operator):
-	is_inverted = True
-	def __init__(self, normal_operator: Operator) -> None:
-		self.normal_operator = normal_operator
-		import asyncio
-		super().__init__(self.normal_operator.name,
-			self.normal_operator.priority,
-			self.normal_operator.wrapped_function,
-			self.normal_operator.req_arg_len)
+class UnaryOper(Operator):
+	def __init__(self, name: str) -> None:
+		super().__init__(name, 1, req_arg_len = 1)
+		if __debug__:
+			assert self.name in set('+-~')
 	@property
 	def wrapped_function(self) -> Callable:
-		return self.normal_operator.wrapped_function
+		if self.name == '-':
+			return lambda x: -x.value
+		if self.name == '~':
+			return lambda x: ~x.value
+		return lambda x: +x.value
 
 	@wrapped_function.setter
 	def wrapped_function(self, value) -> None:
 		pass
 
 	def deriv(self, du: Variable, *args: [ValuedObj]) -> (ValuedObj, Undefined):
-		return self.normal_operator.deriv(du, *args[::-1]) #haha! that's how you invert it
+		if __debug__:
+			assert len(args) == 1
+		if self.name == '-':
+			return -args[0].deriv(du)
+		if self.name == '+':
+			return +args[0].deriv(du)
+		return super().deriv(du, args)
+class InvertedOperator(Operator):
+	is_inverted = True
+	def __init__(self, _normal_operator: Operator) -> None:
+		self._normal_operator = _normal_operator
+		import asyncio
+		super().__init__(self._normal_operator.name,
+			self._normal_operator.priority,
+			req_arg_len = self._normal_operator.req_arg_len)
+	@property
+	def wrapped_function(self) -> Callable:
+		return lambda a, b: self._normal_operator.wrapped_function(b, a)
+
+	@wrapped_function.setter
+	def wrapped_function(self, value) -> None:
+		pass
+
+	def deriv(self, du: Variable, *args: [ValuedObj]) -> (ValuedObj, Undefined):
+		return self._normal_operator.deriv(du, *args[::-1]) #haha! that's how you invert it
 
 opers = {
 	'__add__': AddSubOperator('+'),
@@ -225,9 +248,9 @@ opers = {
 	'__le__': Operator('≤', 8, lambda l, r: l.value <= r.value),
 	'__gt__': Operator('≥', 8, lambda l, r: l.value >= r.value),
 
-	'__neg__': Operator('-', 1, lambda x: -x.value),
-	'__pos__': Operator('+', 1, lambda x: +x.value),
-	'__invert__': Operator('~', 1, lambda x: ~x.value),
+	'__neg__': UnaryOper('-'),
+	'__pos__': UnaryOper('+'),
+	'__invert__': UnaryOper('~'),
 }
 
 opers.update({
@@ -286,13 +309,13 @@ def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv >= rv #future
 opers['__gt__'].wrapped_function = wrap_func
 
 
-def wrap_func(a): return -x.value
+def wrap_func(x): return -x.value
 opers['__neg__'].wrapped_function = wrap_func
 
-def wrap_func(a): return +x.value
+def wrap_func(x): return +x.value
 opers['__pos__'].wrapped_function = wrap_func
 
-def wrap_func(a): return ~x.value
+def wrap_func(x): return ~x.value
 opers['__invert__'].wrapped_function = wrap_func
 
 
