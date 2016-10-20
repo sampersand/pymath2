@@ -4,6 +4,13 @@ from pymath2.builtins.objs.user_obj import UserObj
 class AbstractVector(MathList):
 	print_parens = ('<', '>')
 
+	_len_attrs = {
+		2: MathList._gen_len_attr('xy', 'ij'),
+		3: MathList._gen_len_attr('xyz', 'ijk'),
+		4: MathList._gen_len_attr('wxyz'),
+	}
+
+
 	@property
 	def unit(self):
 		self_val = abs(self)
@@ -34,12 +41,34 @@ class AbstractVector(MathList):
 
 @Final()
 class UserVector(UserObj, AbstractVector):
-	parse_args_regex = r'^(?P<name>\w+)\s*=\s*(?:vector|UserVector|v|\w+)\s*[(].*[)]\s*$'
-
-
-	def __new__(cls, *args):
-		return super().__new__(cls, args)
+	_parse_args_regex = r'^(?P<name>\w+)\s*=\s*(?:vector|UserVector|v|\w+)\s*[(].*[)]\s*$'
 
 	def __init__(self, *args):
 		super().__init__(list_args = args)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
