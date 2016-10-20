@@ -15,5 +15,5 @@ class Variable(NamedValuedObj, Derivable):
 
 	@Override(NamedValuedObj)
 	def __repr__(self) -> str:
-		return '{}({}{})'.format(self.__class__.__name__, 
+		return '{}({})'.format(self.__class__.__name__, 
 			', '.join(x for x in (repr(self.name), 'value=' + repr(self.value) if self.hasvalue else Undefined) if x is not Undefined))

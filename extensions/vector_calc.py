@@ -13,7 +13,7 @@ def gradiant(args, func):
 	
 	ret = []
 	for arg in arg_iter:
-		ret.append((Derivative(func(*args)) / Derivative(arg)))
+		ret.append(func(*args).d(arg))
 	for x in args:
 		x.value = x._old_value
 	return Vector(*ret)
@@ -26,6 +26,6 @@ def gradiant(args, func):
 def dir_deriv(args, func, unit_vector):
 	if __debug__:
 		assert len(args) == len(unit_vector), 'len mismatch'
-	return sum(gradiant(args, func).dot(unit_vector))
+	return gradiant(args, func).dot(unit_vector)
 
 # dir_deriv = UnseededFunction(dir_deriv, 'dir_deriv', '(x0, y0, ...), f, u', 'gradiant((x0, y0, ...), f) · u', -1)

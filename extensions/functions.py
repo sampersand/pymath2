@@ -6,96 +6,70 @@ from pymath2 import Undefined
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.functions.unseeded_function import UnseededFunction
 from pymath2.builtins.functions.seeded_function import SeededFunction
-
 class SeededMathFunction(SeededFunction):
-	def __init__(self, math_instance: 'MathFunction', args: tuple) -> None:
-		super().__init__(math_instance, args)
-
-
 	@SeededFunction.value.getter
-	def value(self) -> Any:
-		for arg in self.args: #async for
-			if arg is Undefined or hasattr(arg, 'hasvalue') and not arg.hasvalue: #await
-				return Undefined
-		return super().value #await
-
-
-	def deriv(self, du: Variable) -> SeededFunction:
-		if __debug__:
-			assert self.unseeded_base_object.derivative is not Undefined, 'No known way to take the derivative of ' + str(self)
-		return self.unseeded_base_object.derivative(self, *self.args, du) #await
-
-class MathFunction(UnseededFunction, FancyText):
-	seeded_type = SeededMathFunction
-	def __init__(self,
-				 name: [str] + FancyText.fancy.types,
-				 wrapped_function: Callable,
-				 args_str: [str] + FancyText.fancy.types = Undefined,
-				 body_str: [str] + FancyText.fancy.types = Undefined,
-				 req_arg_len: int = 1,
-				 derivative: SeededFunction = Undefined) -> None:
-
-		FancyText.__init__(self)
-		UnseededFunction.__init__(self, wrapped_function, self.fancy.process('name', name),
-				self.fancy.process('args_str', args_str), self.fancy.process('body_str', body_str))
-		self._req_arg_len = req_arg_len
-		self.derivative = derivative
-		if __debug__:
-			assert bool(args_str) == bool(body_str), 'cannot pass args and not a body!'
-
+	def value(self):
+		if not self.args[0].hasvalue:
+			return Undefined
+		else:
+			return self.unseeded_base_object.func(self.args[0])
+			# return super().value
+	# @Override(Derivable)
 	@property
-	def req_arg_len(self) -> int:
-		return self._req_arg_len
+	def hasvalue(self):
+		return self.args[0].hasvalue
+	def deriv(self, du: Variable) -> 'SeededFunction':
+		print('a')
+		return self.unseeded_base_object.deriv_w_args(du, self.args[0])
 
-	def __str__(self) -> str:
-		return super().__str__() if self.fancy.has('args_str') else self.name
+class MathFunction(UnseededFunction):
+	seeded_type = SeededMathFunction
+sin = MathFunction(name = 'sin', req_arg_len = 1, func = lambda a: math.sin(a))
+cos = MathFunction(name = 'cos', req_arg_len = 1, func = lambda a: math.cos(a))
+tan = MathFunction(name = 'tan', req_arg_len = 1, func = lambda a: math.tan(a))
+csc = MathFunction(name = 'csc', req_arg_len = 1, func = lambda a: 1 / math.sin(a),)# (Undefined, 'x'), (Undefined, '1/sin(x)'))
+sec = MathFunction(name = 'sec', req_arg_len = 1, func = lambda a: 1 / math.cos(a),)# (Undefined, 'x'), (Undefined, '1/cos(x)'))
+cot = MathFunction(name = 'cot', req_arg_len = 1, func = lambda a: 1 / math.tan(a),)# (Undefined, 'x'), (Undefined, '1/tan(x)'))
 
-	def __repr__(self) -> str:
-		return self.name
-sin = MathFunction('sin', math.sin)
-cos = MathFunction('cos', math.cos)
-tan = MathFunction('tan', math.tan)
-csc = MathFunction('csc', lambda a: 1 / math.sin(a), (Undefined, 'x'), (Undefined, '1/sin(x)'))
-sec = MathFunction('sec', lambda a: 1 / math.cos(a), (Undefined, 'x'), (Undefined, '1/cos(x)'))
-cot = MathFunction('cot', lambda a: 1 / math.tan(a), (Undefined, 'x'), (Undefined, '1/tan(x)'))
+ln = MathFunction(name = 'ln', req_arg_len = 1, func = lambda a: math.log(a))
+log = MathFunction(name = 'log', req_arg_len = 1, func = lambda a: math.log10(a))
+log2 = MathFunction(name = 'log2', req_arg_len = 1, func = lambda a: math.log2(a))
 
-ln = MathFunction('ln', math.log)
-log = MathFunction(('log', 'log₁₀'), math.log10)
-log2 = MathFunction(('log2', 'log₂'), math.log2)
-
-sqrt = MathFunction(('sqrt', '√'), math.sqrt)
-fact = MathFunction('!', math.factorial)
-gamma = MathFunction(('gamma', 'Γ'), math.gamma)
+sqrt = MathFunction(name = 'sqrt', req_arg_len = 1, func = lambda a: math.sqrt(a))
+fact = MathFunction(name = '!', req_arg_len = 1, func = lambda a: math.factorial(a))
+gamma = MathFunction(name = 'gamma', req_arg_len = 1, func = lambda a: math.gamma(a))
 Γ = gamma
 
 # future: async lambda 
-def derive(self, a, du): return cos(a) * a.deriv(du) #await
-sin.derivative = derive
+def derive(du, a): return cos(a) * a.deriv(du) #await
+sin.deriv_w_args = derive
 
 # future: async lambda 
-def derive(self, a, du): return -sin(a) * a.deriv(du) #await
-cos.derivative = derive
+def derive(du, a): return -sin(a) * a.deriv(du) #await
+cos.deriv_w_args = derive
 
 # future: async lambda 
-def derive(self, a, du): return sec(a) ** 2 * a.deriv(du) #await
-tan.derivative = derive
+def derive(du, a): return sec(a) ** 2 * a.deriv(du) #await
+tan.deriv_w_args = derive
 
 # future: async lambda 
-def derive(self, a, du): return -csc(a) * cot(a) * a.deriv(du) #await
-csc.derivative = derive
+def derive(du, a): return -csc(a) * cot(a) * a.deriv(du) #await
+csc.deriv_w_args = derive
 
 # future: async lambda 
-def derive(self, a, du): return sec(a) * tan(a) * a.deriv(du) #await
-sec.derivative = derive
+def derive(du, a): return sec(a) * tan(a) * a.deriv(du) #await
+sec.deriv_w_args = derive
 
 # future: async lambda 
-def derive(self, a, du): return -csc(a) ** 2 * a.deriv(du) #await
-cot.derivative = derive
+def derive(du, a): return -csc(a) ** 2 * a.deriv(du) #await
+cot.deriv_w_args = derive
 
 # future: async lambda 
-def derive(self, a, du): return a.deriv(du) / a #await
-ln.derivative = derive
+def derive(du, a): return a.deriv(du) / a #await
+ln.deriv_w_args = derive
 
+def derive(du, a): return .5 * a ** -.5 * a.deriv(du)
+sqrt.deriv_w_args = derive
 del derive
 
 __all__ = tuple(x for x in list(locals()) if x[0] != '_' and type(x) != type)

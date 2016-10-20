@@ -40,12 +40,13 @@ class ValuedObj(Operable, Derivable):
 		return int(self.value)
 
 	def __float__(self) -> float:
-		return float(self.value)
+		return float(self.value) 
 
 	def __complex__(self) -> complex:
 		return complex(self.value)
 
-
+	def __round__(self, digits: int) -> (int, float):
+		return round(float(self), int(digits))
 	def __eq__(self, other: Any) -> bool:
 		if not hasattr(other, 'value'):
 			return False

@@ -6,12 +6,12 @@ from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 from pymath2.builtins.derivable import Derivable
 class SeededFunction(NamedValuedObj, Derivable):
 	@Override(NamedValuedObj)
-	def __init__(self, unseeded_instance: 'UnseededFunction', args: tuple = Undefined, **kwargs) -> None:
+	def __init__(self, unseeded_base_object: 'UnseededFunction', args: tuple = Undefined, **kwargs) -> None:
 		super().__init__(**kwargs)
 		if __debug__:
 			from .unseeded_function import UnseededFunction
-			assert isinstance(unseeded_instance, UnseededFunction), '{}, type {}'.format(unseeded_instance, type(unseeded_instance))
-		self.unseeded_base_object = unseeded_instance
+			assert isinstance(unseeded_base_object, UnseededFunction), '{}, type {}'.format(unseeded_base_object, type(unseeded_base_object))
+		self.unseeded_base_object = unseeded_base_object
 		self.args = args
 
 	@Override(NamedValuedObj)
@@ -22,15 +22,7 @@ class SeededFunction(NamedValuedObj, Derivable):
 	@Override(NamedValuedObj)
 	@NamedValuedObj.value.getter
 	def value(self) -> Any:
-		if self.args == Undefined:
-			return Undefined
-		wrap_func = self.unseeded_base_object.wrapped_function
-		wrap_func = wrap_func #await
-		called = wrap_func(*self.args)
-		# called = called #await
-		scrubbed = self.scrub(called)
-		return scrubbed
-		return self.scrub(self.unseeded_base_object.wrapped_function(*self.args)) #double await
+		return self.scrub(self.unseeded_base_object.func(*self.args)) #double await
 
 	@Override(NamedValuedObj)
 	@NamedValuedObj.hasvalue.getter
@@ -66,7 +58,7 @@ class SeededFunction(NamedValuedObj, Derivable):
 	def _gen_wrapped_func(val, du):
 		deriv = val.deriv(du)
 		# print(deriv)
-		# b = deriv.unseeded_base_object.wrapped_function
+		# b = deriv.unseeded_base_object.func
 		# print(b)
 		# quit()
 		# def y(): pass
@@ -87,20 +79,22 @@ class SeededFunction(NamedValuedObj, Derivable):
 		# print('I\'m here')
 
 		# return types.FunctionType(y_code, y.__globals__, 'f')
-		return lambda *args: deriv
+		return deriv
 
 	@Override(Derivable)
 	def deriv(self, du: Variable) -> 'UnseededFunction':
 		from .unseeded_function import UnseededFunction
 
 		req_arg_len = self.unseeded_base_object.req_arg_len #future
-		wrapd_func = self._gen_wrapped_func(self.value, du)
-		uns_func =  UnseededFunction(wrapd_func, #await
+		func = self._gen_wrapped_func(self.value, du)
+		func_str = str(func)
+		uns_func =  UnseededFunction(
+							  func = lambda *args: func(*args), #await
 						      name = self.name,
 						      deriv_num = self.unseeded_base_object.deriv_num + 1,
 						      req_arg_len = req_arg_len, #await
 						      args_str = self.unseeded_base_object.args_str,
-						      body_str = str(wrapd_func))
+						      body_str = func_str)
 		return uns_func
 		# print(derived_function)
 	@Override(Derivable)

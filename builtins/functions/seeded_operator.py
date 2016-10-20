@@ -5,17 +5,24 @@ from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 from .seeded_function import SeededFunction
 class SeededOperator(SeededFunction):
-	def __new__(cls, unseeded_instance: 'Operator', args: tuple, **kwargs) -> 'SeededOperator':
-		for arg in args:
-			if isinstance(arg, SeededOperator) and unseeded_instance is arg.unseeded_base_object:
-				# print(args)
-				# quit()
-				pass
+	def __new__(cls, unseeded_base_object: 'Operator', args: tuple, **kwargs) -> 'SeededOperator':
+		if unseeded_base_object.req_arg_len == -1:
+			args_to_pass = []
+			do_make_new = False
+			for arg in args:
+				if isinstance(arg, SeededOperator) and unseeded_base_object is arg.unseeded_base_object:
+					args_to_pass += arg.args
+					do_make_new = True
+				else:
+					args_to_pass.append(arg)
+			if do_make_new:
+				return SeededOperator(unseeded_base_object= unseeded_base_object, args = args_to_pass, **kwargs)
 		return super().__new__(cls)
 
 	@Override(SeededFunction)
-	def __init__(self, **kwargs) -> None:
-		super().__init__(**kwargs)
+	def __init__(self, unseeded_base_object, args, **kwargs) -> None:
+		super().__init__(unseeded_base_object = unseeded_base_object, args = args, **kwargs)
+
 		if __debug__:
 			from .operator import Operator
 			assert isinstance(self.unseeded_base_object, Operator)

@@ -12,7 +12,7 @@ class Operator(UnseededFunction):
 	is_inverted = False
 
 	@Override(UnseededFunction)
-	def __init__(self, priority: int = Undefined, **kwargs) -> None:
+	def __init__(self, priority: int, **kwargs) -> None:
 		super().__init__(**kwargs)
 		if __debug__:
 			assert priority is not Undefined
@@ -30,14 +30,11 @@ class Operator(UnseededFunction):
 
 	@Override(UnseededFunction)
 	def __repr__(self) -> str:
-		print(type(self))
-		print(repr(self.wrapped_function))
-		quit()
-		return (repr(self.wrapped_function))
 		return '{}({!r}, {!r}, {!r}, {!r})'.format(self.__class__.__name__,
 			self.name,
 			self.priority,
-			self.wrapped_function,
+			'bizarre, wrapped function...',
+			# self.func,
 			self.req_arg_len)
 
 	def _is_lower_precedence(self, other: UnseededFunction) -> bool: #_NOT_ the same as the one in SeededFunction
@@ -48,9 +45,6 @@ class Operator(UnseededFunction):
 	def deriv_w_args(self, du: Variable, *args: (ValuedObj, )) -> (ValuedObj, Undefined):
 		raise NotImplementedError
 
-	@UnseededFunction.wrapped_function.getter
-	def wrapped_function(self):
-		raise NotImplementedError
 	# def simplify(self, *args):
 	# 	return None
 
@@ -59,7 +53,7 @@ class MultiArgOperator(Operator):
 	func_for_two_args = Undefined
 
 	@Override(Operator)
-	def __init__(self, **kwargs) -> None:
+	def __init__(self, *args, **kwargs) -> None:
 		return super().__init__(req_arg_len = -1, **kwargs)
 
 	def _reduce_args(self, *args): # async
@@ -70,17 +64,23 @@ class MultiArgOperator(Operator):
 			last_res = self.scrub(self.func_for_two_args(last_res, arg))
 		return last_res
 
-	@Override(Operator)
-	@Operator.wrapped_function.getter
-	def wrapped_function(self):
+	# @Override(Operator)
+	# __func = UnseededFunction.func
+	# @Operator.func.getter
+	@property
+	def func(self):
 		if __debug__:
 			assert self.func_for_two_args is not Undefined
 		return self._reduce_args
+	@func.setter
+	def func(self, val):
+		pass
+	# func = property(fget = func, fset = __func.fset)
 
 class AddSubOperator(MultiArgOperator):
 	@Override(MultiArgOperator)
 	def __init__(self, name: str, **kwargs) -> None:
-		MultiArgOperator.__init__(self, name = name, priority = 3, **kwargs)
+		super().__init__(name = name, priority = 3, **kwargs)
 		if __debug__:
 			assert name in {'+', '-'}
 
@@ -121,7 +121,7 @@ class MulOperator(MultiArgOperator):
 
 	@Override(MultiArgOperator)
 	def __init__(self, **kwargs) -> None:
-		super().__init__(self, name = '*', priority = 2, **kwargs)
+		super().__init__(name = '*', priority = 2, **kwargs)
 
 	@Override(MultiArgOperator)
 	@staticmethod
@@ -140,7 +140,7 @@ class TrueDivOperator(MultiArgOperator):
 
 	@Override(MultiArgOperator)
 	def __init__(self, **kwargs) -> None:
-		super().__init__(self, name = '/', priority = 2, **kwargs)
+		super().__init__(name = '/', priority = 2, **kwargs)
 
 	@Override(MultiArgOperator)
 	@staticmethod
@@ -159,7 +159,7 @@ class PowOperator(MultiArgOperator):
 
 	@Override(MultiArgOperator)
 	def __init__(self, **kwargs) -> None:
-		super().__init__(self, name = '**', priority = 0, **kwargs)
+		super().__init__(name = '**', priority = 0, **kwargs)
 
 	@Override(MultiArgOperator)
 	@staticmethod
@@ -204,13 +204,13 @@ class PowOperator(MultiArgOperator):
 class UnaryOper(Operator):
 	@Override(Operator)
 	def __init__(self, **kwargs) -> None:
-		super().__init__(self, priority = 1, req_arg_len = 1, **kwargs)
+		super().__init__(priority = 1, req_arg_len = 1, **kwargs)
 		if __debug__:
 			assert self.name in set('+-~')
 
 	@Override(Operator)
-	@Operator.wrapped_function.getter
-	def wrapped_function(self) -> Callable:
+	@Operator.func.getter
+	def func(self) -> Callable:
 		if self.name == '-':
 			return lambda x: -x.value
 		if self.name == '~':
@@ -235,46 +235,45 @@ class InvertedOperator(Operator):
 		self._normal_operator = _normal_operator
 
 		if __debug__:
-			assert name not in kwargs
-			assert priority not in kwargs
-			assert req_arg_len not in kwargs
+			assert 'name' not in kwargs
+			assert 'priority' not in kwargs
+			assert 'req_arg_len' not in kwargs
 
-		super().__init__(self,
-						 name = self._normal_operator.name,
+		super().__init__(name = self._normal_operator.name,
 						 priority = self._normal_operator.priority,
 						 req_arg_len = self._normal_operator.req_arg_len,
 						 **kwargs)
 	@Override(Operator)
-	@Operator.wrapped_function.getter
-	def wrapped_function(self) -> Callable:
-		return lambda a, b: self._normal_operator.wrapped_function(b, a)
+	@Operator.func.getter
+	def func(self) -> Callable:
+		return lambda a, b: self._normal_operator.func(b, a)
 
 	@Override(Operator)
 	def deriv_w_args(self, du: Variable, *args: [ValuedObj]) -> (ValuedObj, Undefined):
-		return self._normal_operator.deriv(du, *args[::-1]) #haha! that's how you invert it
+		return self._normal_operator.deriv_w_args(du, *args[::-1]) #haha! that's how you invert it
 
 opers = {
 	'__add__': AddSubOperator(name = '+'),
 	'__sub__': AddSubOperator(name = '-'),
 	'__mul__': MulOperator(),
 	'__truediv__': TrueDivOperator(),
-	'__floordiv__': Operator(name = '//', priority = 2, wrapped_function = lambda l, r: l.value // r.value),
-	'__mod__': Operator(name = '%', priority = 2, wrapped_function = lambda l, r: l.value % r.value),
-	'__matmul__': Operator(name = '@', priority = 2, wrapped_function = lambda l, r: l.value @ r.value),
+	'__floordiv__': Operator(name = '//', priority = 2, func = lambda l, r: l.value // r.value),
+	'__mod__': Operator(name = '%', priority = 2, func = lambda l, r: l.value % r.value),
+	'__matmul__': Operator(name = '@', priority = 2, func = lambda l, r: l.value @ r.value),
 	'__pow__': PowOperator(),
 
-	'__and__': Operator(name = '&', priority = 5, wrapped_function = lambda l, r: l.value & r.value),
-	'__or__': Operator(name = '|', priority = 7, wrapped_function = lambda l, r: l.value | r.value),
-	'__xor__': Operator(name = '^', priority = 6, wrapped_function = lambda l, r: l.value ^ r.value),
-	'__lshift__': Operator(name = '<<',priority =  4, wrapped_function = lambda l, r: l.value << r.value),
-	'__rshift__': Operator(name = '>>',priority =  4, wrapped_function = lambda l, r: l.value >> r.value),
+	'__and__': Operator(name = '&', priority = 5, func = lambda l, r: l.value & r.value),
+	'__or__': Operator(name = '|', priority = 7, func = lambda l, r: l.value | r.value),
+	'__xor__': Operator(name = '^', priority = 6, func = lambda l, r: l.value ^ r.value),
+	'__lshift__': Operator(name = '<<',priority =  4, func = lambda l, r: l.value << r.value),
+	'__rshift__': Operator(name = '>>',priority =  4, func = lambda l, r: l.value >> r.value),
 
 	# '__eq__': Operator('==', lambda a, b: a == b),
 	# '__ne__': Operator('', lambda l, r: l.value  r.value),
-	'__lt__': Operator(name = '<', priority = 8, wrapped_function = lambda l, r: l.value < r.value),
-	'__gt__': Operator(name = '>', priority = 8, wrapped_function = lambda l, r: l.value > r.value),
-	'__le__': Operator(name = '≤', priority = 8, wrapped_function = lambda l, r: l.value <= r.value),
-	'__gt__': Operator(name = '≥', priority = 8, wrapped_function = lambda l, r: l.value >= r.value),
+	'__lt__': Operator(name = '<', priority = 8, func = lambda l, r: l.value < r.value),
+	'__gt__': Operator(name = '>', priority = 8, func = lambda l, r: l.value > r.value),
+	'__le__': Operator(name = '≤', priority = 8, func = lambda l, r: l.value <= r.value),
+	'__gt__': Operator(name = '≥', priority = 8, func = lambda l, r: l.value >= r.value),
 
 	'__neg__': UnaryOper(name = '-'),
 	'__pos__': UnaryOper(name = '+'),
@@ -301,50 +300,50 @@ opers.update({
 
 # future: async lambda
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv // rv #future
-opers['__floordiv__']._wrapped_function = wrap_func
+opers['__floordiv__']._func = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv % rv #future
-opers['__mod__']._wrapped_function = wrap_func
+opers['__mod__']._func = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv @ rv #future
-opers['__matmul__']._wrapped_function = wrap_func
+opers['__matmul__']._func = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv & rv #future
-opers['__and__']._wrapped_function = wrap_func
+opers['__and__']._func = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv | rv #future
-opers['__or__']._wrapped_function = wrap_func
+opers['__or__']._func = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv ^ rv #future
-opers['__xor__']._wrapped_function = wrap_func
+opers['__xor__']._func = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv << rv #future
-opers['__lshift__']._wrapped_function = wrap_func
+opers['__lshift__']._func = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv >> rv #future
-opers['__rshift__']._wrapped_function = wrap_func
+opers['__rshift__']._func = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv < rv #future
-opers['__lt__']._wrapped_function = wrap_func
+opers['__lt__']._func = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv > rv #future
-opers['__gt__']._wrapped_function = wrap_func
+opers['__gt__']._func = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv <= rv #future
-opers['__le__']._wrapped_function = wrap_func
+opers['__le__']._func = wrap_func
 
 def wrap_func(l, r): lv, rv = (l.value), (r.value); return lv >= rv #future
-opers['__gt__']._wrapped_function = wrap_func
+opers['__gt__']._func = wrap_func
 
 
 def wrap_func(x): return -x.value
-opers['__neg__']._wrapped_function = wrap_func
+opers['__neg__']._func = wrap_func
 
 def wrap_func(x): return +x.value
-opers['__pos__']._wrapped_function = wrap_func
+opers['__pos__']._func = wrap_func
 
 def wrap_func(x): return ~x.value
-opers['__invert__']._wrapped_function = wrap_func
+opers['__invert__']._func = wrap_func
 
 
 del wrap_func

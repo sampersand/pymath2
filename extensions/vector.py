@@ -1,11 +1,10 @@
-from pymath2 import Undefined
+from pymath2 import Undefined, Constant
 from .math_list import MathList
 class Vector(MathList):
 	def __abs__(self):
 		return abs(sum(x.value ** 2 for x in self) ** .5)
 
-	def __str__(self):
-		return '<{}>'.format(', '.join(str(x) for x in self)) 
+	print_parens = ('<', '>')
 
 	@property
 	def unit(self):
@@ -25,4 +24,13 @@ class Vector(MathList):
 		return Vector(*(arg.deriv(du) for arg in self))
 
 	def dot(self, other):
-		return Vector(*(x[0] * x[1] for x in zip(self, other)))
+		return sum(x[0] * x[1] for x in zip(self, other))
+
+	def __mul__(self, other):
+		other = self.scrub(other)
+		if hasattr(other, 'hasvalue') and other.hasvalue:
+			return Vector(*(d * other for d in self))
+
+
+
+

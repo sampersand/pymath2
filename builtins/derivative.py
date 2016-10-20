@@ -7,15 +7,21 @@ class Derivative(NamedValuedObj):
 	@Override(NamedValuedObj)
 	def __init__(self, value: NamedValuedObj, **kwargs) -> None:
 		if __debug__:
+			v = str(value) 
 			assert 'name' not in kwargs
-			assert hasattr('name', value)
-			assert hasattr('value', value)
+			assert hasattr(value, 'name')
+			assert hasattr(value, 'value'), value
 		super().__init__(name = 'd{}'.format(value.name), value = value, **kwargs)
 
 	def __truediv__(self, other: 'Derivative') -> 'UnseededFunction':
 		if not isinstance(other, Derivative):
 			return NotImplemented
-		return self.value.deriv(other.value)
+		other.value._old_value_before_deriv = other.value.value
+		del other.value.value
+		ret = self.value.deriv(other.value)
+		other.value.value = other.value._old_value_before_deriv
+		del other.value._old_value_before_deriv
+		return ret
 
 	@Override(NamedValuedObj)
 	def __str__(self) -> str:

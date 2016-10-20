@@ -23,3 +23,7 @@ class MathList(list, NamedValuedObj):
 		if not self.hasvalue:
 			return Undefined
 		return list(self)
+
+	print_parens = ('(', ')')
+	def __str__(self):
+		return self.print_parens[0] + ', '.join(str(x) for x in self) + self.print_parens[1]
