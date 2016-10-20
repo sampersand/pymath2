@@ -15,11 +15,12 @@ class SeededMathFunction(SeededFunction):
 			return self.unseeded_base_object.func(self.args[0])
 			# return super().value
 	# @Override(Derivable)
+
 	@property
 	def hasvalue(self):
 		return self.args[0].hasvalue
+
 	def deriv(self, du: Variable) -> 'SeededFunction':
-		print('a')
 		return self.unseeded_base_object.deriv_w_args(du, self.args[0])
 
 class MathFunction(UnseededFunction):

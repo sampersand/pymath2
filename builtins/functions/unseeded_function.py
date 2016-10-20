@@ -1,6 +1,7 @@
 from typing import Callable
-from pymath2 import Undefined, Override
+from pymath2 import Undefined, Override, Final
 from pymath2.builtins.objs.named_obj import NamedObj
+from pymath2.builtins.objs.user_obj import UserObj
 from .seeded_function import SeededFunction
 class UnseededFunction(NamedObj):
 	seeded_type = SeededFunction
@@ -63,4 +64,36 @@ class UnseededFunction(NamedObj):
 				self.body_str,
 				self.req_arg_len,
 				self.deriv_num)
+
+
+@Final()
+class UserFunction(UserObj, UnseededFunction):
+	parse_args_regex = r'''(?x)^
+		(?P<name>\w+)\s*=\s*
+		(?:func|UserFunction|\w+)[(]
+			lambda\s+
+				(?P<args_str>
+					(?:\w+\s*,?\s*)*
+				)
+			\s*:\s*(?P<body_str>.*)
+			(?:\s*,\s*deriv_num\s*=\s*
+				(?P<deriv_num>\d+)
+			)?\s*[)]\s*$
+	'''
+
+	@Override(UserObj)
+	@staticmethod
+	def process_match(match):
+		match['req_arg_len'] = match['args_str'].count(',') + 1
+		if match['deriv_num'] == None:
+			match['deriv_num'] = 0
+		if __debug__:
+			assert all(x in match for x in ('name', 'args_str', 'body_str', 'req_arg_len', 'deriv_num')), match
+		return match
+
+
+
+
+
+
 

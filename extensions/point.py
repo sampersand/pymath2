@@ -1,18 +1,15 @@
 from pymath2 import Undefined
 from .math_list import MathList
 class AbstractPoint(MathList):
-	pass
-class Point2D(AbstractPoint):
+	print_parens = ('(', ')')
 
-	def __new__(cls, *args, isntbase = False, **kwargs):
+class UserPoint(AbstractPoint):
+
+	def __new__(cls, *args, isntbase = False):
 		return super().__new__(cls, *args, **kwargs)
 
 	def __init__(self, *args, isntbase = False, **kwargs):
 		super().__init__(**kwargs)
-		if __debug__:
-			assert len(args) == 2
-		super().__init__(*args)
-
 		if not isntbase:
 			self.x.name = 'x0'
 			self.y.name = 'y0'

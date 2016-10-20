@@ -1,5 +1,5 @@
 from pymath2 import UnseededFunction, Derivative
-from .vector import Vector
+from .vector import AbstractVector
 
 def gradiant(args, func):
 	if __debug__:
@@ -16,7 +16,7 @@ def gradiant(args, func):
 		ret.append(func(*args).d(arg))
 	for x in args:
 		x.value = x._old_value
-	return Vector(*ret)
+	return AbstractVector(list_args = ret)
 
 # gradiant = UnseededFunction(gradiant,
 # 	'gradiant', '(x0, y0, ... n0), f',

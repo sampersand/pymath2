@@ -15,3 +15,8 @@ def Override(*classes_overriden):
 	def capture_func(func):
 		return func
 	return capture_func
+
+def Final():
+	def capture_class(cls):
+		return cls
+	return capture_class
