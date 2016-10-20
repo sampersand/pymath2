@@ -4,16 +4,16 @@ class AbstractPoint(MathList):
 	pass
 class Point2D(AbstractPoint):
 
-	def __new__(cls, *args, isbase = False, **kwargs):
+	def __new__(cls, *args, isntbase = False, **kwargs):
 		return super().__new__(cls, *args, **kwargs)
 
-	def __init__(self, *args, isbase = False, **kwargs):
+	def __init__(self, *args, isntbase = False, **kwargs):
 		super().__init__(**kwargs)
 		if __debug__:
 			assert len(args) == 2
 		super().__init__(*args)
 
-		if isbase:
+		if not isntbase:
 			self.x.name = 'x0'
 			self.y.name = 'y0'
 
@@ -34,13 +34,13 @@ class Point2D(AbstractPoint):
 	y = property(**y())
 
 class Point3D(AbstractPoint):
-	def __new__(cls, *args, isbase = False):
+	def __new__(cls, *args, isntbase = False):
 		return AbstractPoint.__new__(cls, *args)
-	def __init__(self, *args, isbase = False):
+	def __init__(self, *args, isntbase = False):
 		if __debug__:
 			assert len(args) == 3
 		super().__init__(*args)
-		if isbase:
+		if not isntbase:
 			self.x.name = 'x0'
 			self.y.name = 'y0'
 			self.z.name = 'z0'
