@@ -5,7 +5,8 @@ from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 from .seeded_function import SeededFunction
 class SeededOperator(SeededFunction):
-	def __new__(cls, unseeded_base_object: 'Operator', args: tuple, **kwargs) -> 'SeededOperator':
+	@classmethod
+	def _collapse_args(cls, unseeded_base_object, args, kwargs):
 		if unseeded_base_object.req_arg_len == -1:
 			args_to_pass = []
 			do_make_new = False
@@ -20,8 +21,11 @@ class SeededOperator(SeededFunction):
 				# print(args_to_pass)
 				# return cls(unseeded_base_object, args, **kwargs)
 				return cls(unseeded_base_object= unseeded_base_object, args = args_to_pass, **kwargs)
-		else:
-			quit('nos')
+
+	def __new__(cls, unseeded_base_object: 'Operator', args: tuple, **kwargs) -> 'SeededOperator':
+		collapsed = cls._collapse_args(unseeded_base_object, args, kwargs)
+		if collapsed != None:
+			return collapsed
 		# simplified = unseeded_base_object.simplify(cls, args, kwargs)
 		# print('simplified', simplified)
 		# if simplified != None:
