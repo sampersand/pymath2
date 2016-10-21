@@ -1,9 +1,9 @@
 from typing import Any 
-from pymath2 import Undefined, Override
+from pymath2 import Undefined, override
 from .math_obj import MathObj
 
 class NamedObj(MathObj):
-	@Override(MathObj)
+	@override(MathObj)
 	def __init__(self, name: str = Undefined, **kwargs) -> None:
 		super().__init__(**kwargs)
 		self._name = name
@@ -20,11 +20,11 @@ class NamedObj(MathObj):
 	def hasname(self) -> bool:
 		return self.name is not Undefined
 
-	@Override(MathObj)
+	@override(MathObj)
 	def __str__(self) -> str:
 		return str(self.name) if self.hasname else self.generic_str(prefix = 'unnamed')
 
-	@Override(MathObj)
+	@override(MathObj)
 	def __repr__(self) -> str:
 		return '{}({!r})'.format(self.__class__.__name__, self.name)
 

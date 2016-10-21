@@ -1,12 +1,12 @@
-from typing import Callable
-from pymath2 import Undefined, Override, final
+from typing import Callable, Final
+from pymath2 import Undefined, override
 from pymath2.builtins.objs.named_obj import NamedObj
 from pymath2.builtins.objs.user_obj import UserObj
 from .seeded_function import SeededFunction
 class UnseededFunction(NamedObj):
 	seeded_type = SeededFunction
 
-	@Override(NamedObj)
+	@override(NamedObj)
 	def __init__(self,
 				 func: Callable = Undefined,
 				 args_str: str = Undefined,
@@ -50,11 +50,11 @@ class UnseededFunction(NamedObj):
 	def _gen_unseeded_str(name, deriv_num, args_str, body_str):
 		return '{}{}({}) = {}'.format(name, UnseededFunction._prime_str(deriv_num), args_str, body_str)
 
-	@Override(NamedObj)
+	@override(NamedObj)
 	def __str__(self) -> str:
 		return self._gen_unseeded_str(self.name, self.deriv_num, self.args_str, self.body_str)
 
-	@Override(NamedObj)
+	@override(NamedObj)
 	def __repr__(self) -> str:
 		return '{}({!r}, {!r}, {!r}, {!r}, {!r}, {!r})'.format(
 				self.__class__.__qualname__,
@@ -66,8 +66,7 @@ class UnseededFunction(NamedObj):
 				self.deriv_num)
 
 
-@final()
-class UserFunction(UserObj, UnseededFunction):
+class UserFunction(UserObj, UnseededFunction, Final):
 	_parse_args_regex = r'''(?x)^
 		(?P<name>\w+)\s*=\s*
 		(?:func|UserFunction|\w+)[(]
@@ -81,7 +80,7 @@ class UserFunction(UserObj, UnseededFunction):
 			)?\s*[)]\s*$
 	'''
 
-	@Override(UserObj)
+	@override(UserObj)
 	@staticmethod
 	def process_match(match):
 		match['req_arg_len'] = match['args_str'].count(',') + 1

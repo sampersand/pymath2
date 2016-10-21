@@ -1,6 +1,6 @@
 from typing import Callable
 
-from pymath2 import Undefined, Override
+from pymath2 import Undefined, override
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.valued_obj import ValuedObj
 
@@ -8,10 +8,10 @@ from .unseeded_function import UnseededFunction
 from .seeded_operator import SeededOperator
 
 class Operator(UnseededFunction):
-	seeded_type = SeededOperator #@Override UnseededFunction
+	seeded_type = SeededOperator #@override UnseededFunction
 	is_inverted = False
 
-	@Override(UnseededFunction)
+	@override(UnseededFunction)
 	def __init__(self, priority: int, **kwargs) -> None:
 		super().__init__(**kwargs)
 		if __debug__:
@@ -24,11 +24,11 @@ class Operator(UnseededFunction):
 			assert len([name for name, oper in opers.items() if self is oper]) == 1
 		return next(name for name, oper in opers.items() if self is oper)
 
-	@Override(UnseededFunction)
+	@override(UnseededFunction)
 	def __str__(self) -> str:
 		return self.name
 
-	@Override(UnseededFunction)
+	@override(UnseededFunction)
 	def __repr__(self) -> str:
 		return '{}({!r}, {!r}, {!r}, {!r})'.format(self.__class__.__name__,
 			self.name,
@@ -52,7 +52,7 @@ class MultiArgOperator(Operator):
 
 	func_for_two_args = Undefined
 
-	@Override(Operator)
+	@override(Operator)
 	def __init__(self, *args, **kwargs) -> None:
 		return super().__init__(req_arg_len = -1, **kwargs)
 
@@ -64,7 +64,7 @@ class MultiArgOperator(Operator):
 			last_res = self.scrub(self.func_for_two_args(last_res, arg))
 		return last_res
 
-	# @Override(Operator)
+	# @override(Operator)
 	# __func = UnseededFunction.func
 	# @Operator.func.getter
 	@property
@@ -78,7 +78,7 @@ class MultiArgOperator(Operator):
 	# func = property(fget = func, fset = __func.fset)
 
 class AddSubOperator(MultiArgOperator):
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	def __init__(self, name: str, **kwargs) -> None:
 		super().__init__(name = name, priority = 3, **kwargs)
 		if __debug__:
@@ -98,7 +98,7 @@ class AddSubOperator(MultiArgOperator):
 		rv = (r.value) #future
 		return lv - rv #await
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	@property
 	def func_for_two_args(self):
 		if self._is_plus:
@@ -109,7 +109,7 @@ class AddSubOperator(MultiArgOperator):
 	def _is_plus(self) -> bool:
 		return self.name == '+'
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	def deriv_w_args(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
 		ld = (l.deriv(du)) #future
 		rd = (r.deriv(du)) #future
@@ -119,18 +119,18 @@ class AddSubOperator(MultiArgOperator):
 
 class MulOperator(MultiArgOperator):
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	def __init__(self, **kwargs) -> None:
 		super().__init__(name = '*', priority = 2, **kwargs)
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	@staticmethod
 	def func_for_two_args(l, r): #async
 		lv = (l.value) #future
 		rv = (r.value) #future
 		return lv * rv #await
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	def deriv_w_args(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
 		ld = (l.deriv(du)) #future
 		rd = (r.deriv(du)) #future
@@ -138,18 +138,18 @@ class MulOperator(MultiArgOperator):
 
 class TrueDivOperator(MultiArgOperator):
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	def __init__(self, **kwargs) -> None:
 		super().__init__(name = '/', priority = 2, **kwargs)
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	@staticmethod
 	def func_for_two_args(l, r):
 		lv = (l.value) #future
 		rv = (r.value) #future
 		return lv / rv #await
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	def deriv_w_args(self, du: Variable, n: ValuedObj, d: ValuedObj) -> (ValuedObj, Undefined):
 		nd = (n.deriv(du)) #future
 		dd = (d.deriv(du)) #future
@@ -157,11 +157,11 @@ class TrueDivOperator(MultiArgOperator):
 
 class PowOperator(MultiArgOperator):
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	def __init__(self, **kwargs) -> None:
 		super().__init__(name = '**', priority = 0, **kwargs)
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	@staticmethod
 	def func_for_two_args(b, p):
 		bv = (b.value) #future
@@ -169,7 +169,7 @@ class PowOperator(MultiArgOperator):
 		return bv ** pv #await
 
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	def _reduce_args(self, *args):
 		if __debug__:
 			assert args, 'dont know how to deal with 0 length args yet, but its possible'
@@ -179,7 +179,7 @@ class PowOperator(MultiArgOperator):
 		return last_res
 		# this is different for power of, but i ahvent fixed 
 
-	@Override(MultiArgOperator)
+	@override(MultiArgOperator)
 	def deriv_w_args(self, du: Variable, b: ValuedObj, p: ValuedObj) -> (ValuedObj, Undefined):
 		bc = (b.isconst(du)) #future
 		pc = (p.isconst(du)) #future
@@ -202,13 +202,13 @@ class PowOperator(MultiArgOperator):
 		return b ** p * (bd * p / b + pd * lnb) #await
 
 class UnaryOper(Operator):
-	@Override(Operator)
+	@override(Operator)
 	def __init__(self, **kwargs) -> None:
 		super().__init__(priority = 1, req_arg_len = 1, **kwargs)
 		if __debug__:
 			assert self.name in set('+-~')
 
-	@Override(Operator)
+	@override(Operator)
 	@Operator.func.getter
 	def func(self) -> Callable:
 		if self.name == '-':
@@ -217,7 +217,7 @@ class UnaryOper(Operator):
 			return lambda x: ~x.value
 		return lambda x: +x.value
 
-	@Override(Operator)
+	@override(Operator)
 	def deriv_w_args(self, du: Variable, *args: [ValuedObj]) -> (ValuedObj, Undefined):
 		if __debug__:
 			assert len(args) == 1
@@ -229,7 +229,7 @@ class UnaryOper(Operator):
 
 class InvertedOperator(Operator):
 	is_inverted = True
-	@Override(Operator)
+	@override(Operator)
 	def __init__(self, _normal_operator: Operator, **kwargs) -> None:
 
 		self._normal_operator = _normal_operator
@@ -243,12 +243,12 @@ class InvertedOperator(Operator):
 						 priority = self._normal_operator.priority,
 						 req_arg_len = self._normal_operator.req_arg_len,
 						 **kwargs)
-	@Override(Operator)
+	@override(Operator)
 	@Operator.func.getter
 	def func(self) -> Callable:
 		return lambda a, b: self._normal_operator.func(b, a)
 
-	@Override(Operator)
+	@override(Operator)
 	def deriv_w_args(self, du: Variable, *args: [ValuedObj]) -> (ValuedObj, Undefined):
 		return self._normal_operator.deriv_w_args(du, *args[::-1]) #haha! that's how you invert it
 

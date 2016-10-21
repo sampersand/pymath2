@@ -1,11 +1,11 @@
 from typing import Any
-from pymath2 import Undefined, Override
+from pymath2 import Undefined, override
 from .math_obj import MathObj
 from pymath2.builtins.operable import Operable
 from pymath2.builtins.derivable import Derivable
 class ValuedObj(Operable, Derivable):
 
-	@Override(Operable, Derivable)
+	@override(Operable, Derivable)
 	def __init__(self, value: Any = Undefined, **kwargs) -> None:
 		super().__init__(**kwargs)
 		self._value = value
@@ -26,7 +26,7 @@ class ValuedObj(Operable, Derivable):
 	def hasvalue(self) -> bool:
 		return self.value is not Undefined #await
 
-	@Override(Derivable)
+	@override(Derivable)
 	def isconst(self, du: 'Variable'):
 		return self != du
 
@@ -54,11 +54,11 @@ class ValuedObj(Operable, Derivable):
 			return True
 		return super().__eq__(other)
 
-	@Override(Operable, Derivable)
+	@override(Operable, Derivable)
 	def __str__(self) -> str:
 		return self.generic_str('unvalued') if not self.hasvalue else str(self.value)
 
-	@Override(Operable, Derivable)
+	@override(Operable, Derivable)
 	def __repr__(self) -> str:
 		return '{}({!r})'.format(self.__class__.__name__, self.value)
 

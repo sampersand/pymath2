@@ -1,4 +1,4 @@
-from pymath2 import Undefined, Override
+from pymath2 import Undefined, override
 from .math_obj import MathObj
 from inspect import stack
 from re import search
@@ -6,7 +6,7 @@ class UserObj(MathObj):
 
 	_parse_args_regex = Undefined
 
-	@Override(MathObj)
+	@override(MathObj)
 	def __init__(self, *args, **kwargs) -> None:
 		if __debug__:
 			assert self._parse_args_regex is not Undefined, '_parse_args_regex cannot be undefined'

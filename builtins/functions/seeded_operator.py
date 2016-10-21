@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, Override
+from pymath2 import Undefined, override
 from pymath2.builtins.objs.math_obj import MathObj
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
@@ -19,7 +19,7 @@ class SeededOperator(SeededFunction):
 				return SeededOperator(unseeded_base_object= unseeded_base_object, args = args_to_pass, **kwargs)
 		return super().__new__(cls)
 
-	@Override(SeededFunction)
+	@override(SeededFunction)
 	def __init__(self, unseeded_base_object, args, **kwargs) -> None:
 		super().__init__(unseeded_base_object = unseeded_base_object, args = args, **kwargs)
 
@@ -27,7 +27,7 @@ class SeededOperator(SeededFunction):
 			from .operator import Operator
 			assert isinstance(self.unseeded_base_object, Operator)
 
-	@Override(SeededFunction)
+	@override(SeededFunction)
 	def __repr__(self) -> str:
 		return '{}({!r}, {!r})'.format(self.__class__.__name__, self.unseeded_base_object, self.args)
 
@@ -49,7 +49,7 @@ class SeededOperator(SeededFunction):
 		r = self._possibly_surround_in_parens(r)
 		return '{} {} {}'.format(l, self.name, r)
 
-	@Override(SeededFunction)
+	@override(SeededFunction)
 	def __str__(self) -> str:
 		if self.hasvalue:
 			return str(self.value)
@@ -65,7 +65,7 @@ class SeededOperator(SeededFunction):
 			raise Exception('How does an operator have {} required arguments?'.
 								format(self.unseeded_base_object.req_arg_len))
 
-	@Override(SeededFunction)
+	@override(SeededFunction)
 	def deriv(self, du: Variable) -> ('ValuedObj', Undefined):
 		return self.unseeded_base_object.deriv_w_args(du, *self.args) #await
 

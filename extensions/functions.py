@@ -14,7 +14,7 @@ class SeededMathFunction(SeededFunction):
 		else:
 			return self.unseeded_base_object.func(self.args[0])
 			# return super().value
-	# @Override(Derivable)
+	# @override(Derivable)
 
 	@property
 	def hasvalue(self):
