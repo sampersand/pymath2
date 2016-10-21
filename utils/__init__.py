@@ -1,5 +1,6 @@
 from .override import override
 from .copy_doc import copydoc
+from .final import final
 # import asyncio
 # loop = asyncio.get_event_loop()
 # def await_result(coro, event_loop = None):

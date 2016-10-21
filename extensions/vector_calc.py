@@ -16,7 +16,7 @@ def gradiant(args, func):
 		ret.append(func(*args).d(arg))
 	for x in args:
 		x.value = x._old_value
-	return AbstractVector(list_args = ret)
+	return AbstractVector(*ret)
 
 # gradiant = UnseededFunction(gradiant,
 # 	'gradiant', '(x0, y0, ... n0), f',

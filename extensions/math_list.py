@@ -9,15 +9,17 @@ class MathList(NamedValuedObj, list):
 
 	@override(list)
 	def __new__(cls, *args, name = Undefined, **kwargs):
-		return super().__new__(cls, list_args = args, **kwargs)
+		return super().__new__(cls, *args, **kwargs)
 
 	print_parens = ('(', ')')
 	@override(NamedValuedObj, list)
-	def __init__(self, list_args = (), **kwargs):
+	def __init__(self, *args, **kwargs):
 		super().__init__(**kwargs)
-		list.__init__(self, list(self.scrub(x) for x in list_args)) #baaad
-		for attr in self._attrs_list_for_this_len:
-			getattr(self, attr).name = '{}_for_{}'.format(attr, id(self))
+		list.__init__(self, list(self.scrub(x) for x in args)) #baaad
+		for attr_name in self._attrs_list_for_this_len:
+			attr = getattr(self, attr_name)
+			if not attr.hasname:
+				attr.name = '{}_for_{}'.format(attr_name, id(self))
 
 	@property
 	def _attrs_list_for_this_len(self) -> dict:

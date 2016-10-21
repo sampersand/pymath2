@@ -1,5 +1,4 @@
-from typing import Final
-from pymath2 import Undefined
+from pymath2 import Undefined, final
 from .math_list import MathList
 from pymath2.builtins.objs.user_obj import UserObj
 class AbstractPoint(MathList):
@@ -11,7 +10,8 @@ class AbstractPoint(MathList):
 		4: MathList._gen_len_attr(*tuple('wxyz')),
 	}
 
-class UserPoint(UserObj, AbstractPoint, Final):
+@final
+class UserPoint(UserObj, AbstractPoint):
 
 	_parse_args_regex = r'^(?P<name>\w+)\s*=\s*(?:point|UserPoint|p|\w+)\s*[(].*[)]\s*$'
 

@@ -1,6 +1,6 @@
 import asyncio
-from typing import Any, Final
-from pymath2 import Undefined, override
+from typing import Any
+from pymath2 import Undefined, override, final
 # from .functions.unseeded_function import 'UnseededFunction'
 from .objs.named_valued_obj import NamedValuedObj
 class Derivative(NamedValuedObj):
@@ -27,7 +27,8 @@ class Derivative(NamedValuedObj):
 	def __str__(self) -> str:
 		return self.name
 
-class UserDerivative(Derivative, Final):
+@final
+class UserDerivative(Derivative):
 	@override(Derivative)
 	def __init__(self, value):
 		super().__init__(value = value)
