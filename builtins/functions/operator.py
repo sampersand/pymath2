@@ -45,8 +45,8 @@ class Operator(UnseededFunction):
 	def deriv_w_args(self, du: Variable, *args: (ValuedObj, )) -> (ValuedObj, Undefined):
 		raise NotImplementedError
 
-	# def simplify(self, *args):
-	# 	return None
+	def simplify(self, *args):
+		return None
 
 class MultiArgOperator(Operator):
 
@@ -117,6 +117,17 @@ class AddSubOperator(MultiArgOperator):
 			return ld + rd #await
 		return ld - rd #await
 
+
+	@override(Operator)
+	def simplify(self, cls, args, kwargs_to_pass):
+		args = list(args)
+		if not any(x == 0 for x in args):
+			return None
+		if self._is_plus:
+			for i in range(len(args)):
+				if args[i] == 0:
+					args.pop(i)
+			return cls(self, args, **kwargs_to_pass)
 class MulOperator(MultiArgOperator):
 
 	@override(MultiArgOperator)
