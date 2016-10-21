@@ -16,11 +16,16 @@ class SeededOperator(SeededFunction):
 				else:
 					args_to_pass.append(arg)
 			if do_make_new:
-				return SeededOperator(unseeded_base_object= unseeded_base_object, args = args_to_pass, **kwargs)
-		simplified = unseeded_base_object.simplify(cls, args, kwargs)
-		print(simplified)
-		if simplified != None:
-			return simplified
+				args = args_to_pass
+				# print(args_to_pass)
+				# return cls(unseeded_base_object, args, **kwargs)
+				return cls(unseeded_base_object= unseeded_base_object, args = args_to_pass, **kwargs)
+		else:
+			quit('nos')
+		# simplified = unseeded_base_object.simplify(cls, args, kwargs)
+		# print('simplified', simplified)
+		# if simplified != None:
+			# return simplified
 		return super().__new__(cls)
 
 	@override(SeededFunction)

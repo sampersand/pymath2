@@ -47,7 +47,9 @@ class ValuedObj(Operable, Derivable):
 
 	def __round__(self, digits: int) -> (int, float):
 		return round(float(self), int(digits))
+
 	def __eq__(self, other: Any) -> bool:
+		other = self.scrub(other)
 		if not hasattr(other, 'value'):
 			return False
 		if self.value == other.value and self.value is not Undefined:

@@ -29,6 +29,7 @@ class NamedObj(MathObj):
 		return '{}({!r})'.format(self.__class__.__name__, self.name)
 
 	def __eq__(self, other: Any) -> bool:
+		other = self.scrub(other)
 		if not hasattr(other, 'name'):
 			return False
 		if self.name == other.name and self.name is not Undefined:

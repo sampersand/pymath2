@@ -121,6 +121,7 @@ class AddSubOperator(MultiArgOperator):
 	@override(Operator)
 	def simplify(self, cls, args, kwargs_to_pass):
 		args = list(args)
+		print(args)
 		if not any(x == 0 for x in args):
 			return None
 		if self._is_plus:
