@@ -14,18 +14,18 @@ class SeededFunction(NamedValuedObj, Derivable):
 		self.unseeded_base_object = unseeded_base_object
 		self.args = args
 
-	@Override(NamedValuedObj)
 	@NamedValuedObj.name.getter
+	@Override(NamedValuedObj)
 	def name(self):
 		return self._name if self._name is not Undefined else self.unseeded_base_object.name
 
-	@Override(NamedValuedObj)
 	@NamedValuedObj.value.getter
+	@Override(NamedValuedObj)
 	def value(self) -> Any:
 		return self.scrub(self.unseeded_base_object.func(*self.args)) #double await
 
-	@Override(NamedValuedObj)
 	@NamedValuedObj.hasvalue.getter
+	@Override(NamedValuedObj)
 	def hasvalue(self) -> Any:
 		return self.value.hasvalue #double await
 

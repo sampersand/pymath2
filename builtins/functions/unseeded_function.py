@@ -1,5 +1,5 @@
 from typing import Callable
-from pymath2 import Undefined, Override, Final
+from pymath2 import Undefined, Override, final
 from pymath2.builtins.objs.named_obj import NamedObj
 from pymath2.builtins.objs.user_obj import UserObj
 from .seeded_function import SeededFunction
@@ -66,7 +66,7 @@ class UnseededFunction(NamedObj):
 				self.deriv_num)
 
 
-@Final()
+@final()
 class UserFunction(UserObj, UnseededFunction):
 	_parse_args_regex = r'''(?x)^
 		(?P<name>\w+)\s*=\s*

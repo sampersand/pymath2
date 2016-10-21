@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, Override, Final
+from pymath2 import Undefined, Override, final
 from .objs.named_valued_obj import NamedValuedObj
 from .derivable import Derivable
 class Variable(NamedValuedObj, Derivable):
@@ -19,7 +19,7 @@ class Variable(NamedValuedObj, Derivable):
 			', '.join(x for x in (repr(self.name), 'value=' + repr(self.value) if self.hasvalue else Undefined) if x is not Undefined))
 
 
-@Final()
+@final()
 class UserVariable(Variable):
 	@Override(Variable)
 	def __init__(self, value, name):

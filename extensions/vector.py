@@ -1,4 +1,4 @@
-from pymath2 import Undefined, Constant, Final
+from pymath2 import Undefined, Constant, final
 from .math_list import MathList
 from pymath2.builtins.objs.user_obj import UserObj
 class AbstractVector(MathList):
@@ -39,7 +39,7 @@ class AbstractVector(MathList):
 		return abs(sum(x.value ** 2 for x in self) ** .5)
 
 
-@Final()
+@final()
 class UserVector(UserObj, AbstractVector):
 	_parse_args_regex = r'^(?P<name>\w+)\s*=\s*(?:vector|UserVector|v|\w+)\s*[(].*[)]\s*$'
 
