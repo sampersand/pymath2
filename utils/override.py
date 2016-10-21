@@ -1,15 +1,16 @@
 from types import CoroutineType, FunctionType, GeneratorType, MethodType
 from typing import Type, Callable, TypeVar, Any, Union
-def get_obj_name(obj):
+def get_obj_name(obj_or_name):
 	""" Determine the name of the object """
-	if type(obj) == staticmethod:
+	if isinstance(name, str):
+		return name
+	elif type(obj) == staticmethod:
 		return obj.__func__.__name__
 	elif type(obj) == property:
 		return get_obj_name(obj.fget)
 	elif hasattr(obj, '__name__'):
 		return obj.__name__
 	else:
-		print(dir(obj))
 		raise ValueError('No way to determine name for ' + str(obj.__class__))
 
 
@@ -25,7 +26,6 @@ def _determine_presence(classes, name, do_crash):
 	return True
 
 T = TypeVar('T', CoroutineType, FunctionType, GeneratorType, MethodType, property, staticmethod, classmethod)
-from .copy_doc import copydoc
 def override(*parents: Type[Any],
 			 name: str = None,
 			 do_crash: bool = None,
@@ -71,13 +71,15 @@ def override(*parents: Type[Any],
 		*parents -- A variable amount of classes that will be checked to make sure they have the 
 		            correct name.
 	Keyword Arguments:
-		name     -- The name to check. If left blank, a wrapper function will be returned, from
-		             which name will be derived. (default: None)
-		do_crash -- If True, a NameError will be raised if name isn't found
-		            (default: None --> False if name is specified, True otherwise)
-		copy_doc -- If True, the documentation from the first parent's instance will be copied to 
-		            the wrapper's argument. If a wrapper isn't used, this does nothing.
-		            (default: True)
+		name        -- The name to check. If left blank, a wrapper function will be returned, from
+		               which name will be derived. (default: None)
+		do_crash    -- If True, a NameError will be raised if name isn't found.
+		               (default: None --> False if name is specified, True otherwise)
+		copy_doc    -- If True, the documentation from the first parent's instance will be copied to 
+		               the wrapper's argument. If a wrapper isn't used, this does nothing.
+		               (default: True)
+		check_final -- If True, this will make sure all the parent elements arent final.
+		               (default: None --> False if name is specified, True otherwise)
     Returns:
     	True / False       -- If name was specified and do_crash is False, this will be whether or
 		                      not name overrides everything.
@@ -99,7 +101,11 @@ def override(*parents: Type[Any],
 		obj_name = get_obj_name(inp_obj)
 		_determine_presence(parents, obj_name, True if do_crash == None else do_crash)
 		if copy_doc:
-			copydoc(parents[0], inp_obj, obj_name)
+			from .copy_doc import copy_doc
+			copy_doc(parents[0], inp_obj, obj_name)
+		if check_final:
+			from .check_final import check_final
+			check_final(parents, obj_name, True if do_crash == None else do_crash)
 		return inp_obj
 
 	return capture

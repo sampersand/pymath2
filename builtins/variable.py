@@ -5,9 +5,8 @@ from .derivable import Derivable
 class Variable(NamedValuedObj, Derivable):
 
 	@override(Derivable)
-	def isconst(self, du: 'Variable') -> bool:
+	async def _aisconst(self, du: 'Variable') -> bool:
 		return self is not du and self.name != du.name
-		# return self != du
 
 	@override(Derivable)
 	def deriv(self, du: 'Variable') -> (0, 1):
