@@ -62,7 +62,6 @@ class UnseededFunction(NamedObj):
 			unseeded_base_object = self,
 			args = args)
 		r = ret.unseeded_base_object
-		print(await r.__astr__())
 		return ret
 
 	@staticmethod
