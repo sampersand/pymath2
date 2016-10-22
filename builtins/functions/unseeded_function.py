@@ -104,8 +104,8 @@ class UserFunction(UserObj, UnseededFunction):
 				(?P<deriv_num>\d+)
 			)?\s*[)]\s*$
 	'''
-	async def __ainit__(self, *args, **kwargs):
-		await super().__ainit__(*args, **kwargs)
+	override(UserObj, name = '_parse_args_regex')
+
 	@override(UserObj)
 	@staticmethod
 	def process_match(match):

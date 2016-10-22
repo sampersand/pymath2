@@ -53,6 +53,7 @@ class MultiArgOperator(Operator):
 
 	func_for_two_args = Undefined
 
+
 	@override(Operator)
 	async def __ainit__(self, *args, **kwargs) -> None:
 		await super().__ainit__(req_arg_len = -1, **kwargs)
@@ -62,7 +63,6 @@ class MultiArgOperator(Operator):
 
 		last_res = args[0]
 		for arg in args[1:]:
-			print(await self._aname, type(self.func_for_two_args))
 			val = await self.func_for_two_args(last_res, arg)
 			last_res = await self.scrub(val)
 		return last_res
@@ -188,8 +188,8 @@ class PowOperator(MultiArgOperator):
 	@override(MultiArgOperator)
 	@staticmethod
 	async def func_for_two_args(b, p):
-		bv = future(b.value)
-		pv = future(p.value)
+		bv = future(b._avalue)
+		pv = future(p._avalue)
 		return await bv ** await pv
 
 
@@ -199,7 +199,7 @@ class PowOperator(MultiArgOperator):
 
 		last_res = args[-1]
 		for arg in reversed(args[:-1]):
-			last_res = await self.scrub(self.func_for_two_args(arg, last_res)) #await
+			last_res = await self.scrub(await self.func_for_two_args(arg, last_res)) #await
 		return last_res
 		# this is different for power of, but i ahvent fixed 
 

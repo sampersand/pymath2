@@ -14,6 +14,7 @@ class AbstractPoint(MathList):
 class UserPoint(UserObj, AbstractPoint):
 
 	_parse_args_regex = r'^(?P<name>\w+)\s*=\s*(?:point|UserPoint|p|\w+)\s*[(].*[)]\s*$'
+	override(UserObj, name = '_parse_args_regex')
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(list_args = args, **kwargs)

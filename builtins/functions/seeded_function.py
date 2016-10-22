@@ -39,9 +39,15 @@ class SeededFunction(NamedValuedObj, Derivable):
 		if await self._ahasvalue:
 			return str(await self._avalue)
 		name = future(self._aname)
-		primestr = future(self._prime_str(self.unseeded_base_object.deriv_num))
-		args = str(self.args) if self.args is Undefined else ', '.join(str(x) for x in self.args)
-		return '{}{}({})'.format(name, primestr, args)
+		primestr = future(self.unseeded_base_object._aprime_str(self.unseeded_base_object.deriv_num))
+		if self.args is Undefined:
+			args = future(self.args.__astr__())
+		else:
+			args = []
+			for arg in (future(x.__astr__()) for x in self.args):
+				args.append(await arg)
+			args = ', '.join(args)
+		return '{}{}({})'.format(await name, await primestr, args)
 
 	@override(NamedValuedObj)
 	async def __arepr__(self) -> str:

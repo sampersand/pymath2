@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, override
+from pymath2 import Undefined, override, future
 from pymath2.builtins.objs.math_obj import MathObj
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
@@ -52,17 +52,18 @@ class SeededOperator(SeededFunction):
 			return False
 		return self.unseeded_base_object._is_lower_precedence(other.unseeded_base_object) #should have because self.unseeded_base_object is an operator
 
-	def _possibly_surround_in_parens(self, other: MathObj) -> str:
+	async def _possibly_surround_in_parens(self, other: MathObj) -> str:
 		if self._is_lower_precedence(other):
-			return '({})'.format(other)
-		return str(other)
+			return '({})'.format(await other.__astr__())
+		return await other.__astr__()
 
 
 	async def _bool_oper_str(self, l, r) -> str:
 		# print('Dummy Method: _bool_oper_str')
-		l = self._possibly_surround_in_parens(l)
-		r = self._possibly_surround_in_parens(r)
-		return '{} {} {}'.format(l, await self._aname, r)
+		l = future(self._possibly_surround_in_parens(l))
+		r = future(self._possibly_surround_in_parens(r))
+		n = future(self._aname)
+		return '{} {} {}'.format(await l, await n, await r)
 
 	@override(SeededFunction)
 	async def __astr__(self) -> str:
@@ -76,7 +77,7 @@ class SeededOperator(SeededFunction):
 		elif req_arg_len == -1:
 			async def func_to_reduce(a, b):
 				return await self._bool_oper_str(a, b)
-			ret = self.async_getattr(await func_to_reduce(self.args[0], self.args[1]), '__str__')
+			ret = (await self.async_getattr(await func_to_reduce(self.args[0], self.args[1]), '__str__'))()
 			for a in self.args[2:]:
 				ret = func_to_reduce(ret, a)
 			return ret

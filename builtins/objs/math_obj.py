@@ -15,7 +15,10 @@ class MathObj():
 		return complete(self.__ainit__(*args, **kwargs))
 
 	async def __ainit__(self, *args, **kwargs):
+		# if not hasattr(super(), '__ainit__'):
 		super().__init__(*args, **kwargs)
+		# else:
+		# super().__ainit__(*args, **kwargs)
 
 	@staticmethod
 	async def async_getattr(obj, attr: str = '__repr__'):
@@ -88,6 +91,7 @@ class MathObj():
 
 	@final
 	def __getattr__(self, attr):
+		return super().__getattr__(name, val)
 		assert False, "don't use non-async functions!"
 		return complete(self.__agetattr__(attr))
 	async def __agetattr__(self, attr):
@@ -97,6 +101,7 @@ class MathObj():
 	def __setattr__(self, name, val):
 		#argh i gotta fix this later
 		return super().__setattr__(name, val)
+		assert False, "don't use non-async functions!"
 		return complete(self.__asetattr__(name, val))
 	async def __asetattr__(self, name, val):
 		return super().__setattr__(name, val)
