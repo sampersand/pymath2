@@ -30,7 +30,7 @@ class SeededOperator(SeededFunction):
 		# print('simplified', simplified)
 		# if simplified != None:
 			# return simplified
-		return await super().__anew__(cls, unseeded_base_object = unseeded_base_object, args = args, **kawrgs)
+		return await super().__anew__(cls, unseeded_base_object = unseeded_base_object, args = args, **kwargs)
 
 	@override(SeededFunction)
 	async def __ainit__(self, unseeded_base_object, args, **kwargs) -> None:
@@ -58,11 +58,11 @@ class SeededOperator(SeededFunction):
 		return str(other)
 
 
-	def _bool_oper_str(self, l, r) -> str:
+	async def _bool_oper_str(self, l, r) -> str:
 		# print('Dummy Method: _bool_oper_str')
 		l = self._possibly_surround_in_parens(l)
 		r = self._possibly_surround_in_parens(r)
-		return '{} {} {}'.format(l, self.name, r)
+		return '{} {} {}'.format(l, await self._aname, r)
 
 	@override(SeededFunction)
 	async def __astr__(self) -> str:
@@ -70,12 +70,16 @@ class SeededOperator(SeededFunction):
 			return str(await self._avalue)
 		req_arg_len = self.unseeded_base_object.req_arg_len
 		if req_arg_len == 1:
-			return '{}{}'.format(self.name, self._possibly_surround_in_parens(self.args[0]))
+			return '{}{}'.format(self._aname, self._possibly_surround_in_parens(self.args[0]))
 		elif req_arg_len == 2:
 			return self._bool_oper_str(*(self.args if not self.unseeded_base_object.is_inverted else self.args[::-1]))
 		elif req_arg_len == -1:
-			from functools import reduce
-			return str(reduce(lambda a, b: self._bool_oper_str(a, b), self.args))
+			async def func_to_reduce(a, b):
+				return await self._bool_oper_str(a, b)
+			ret = self.async_getattr(await func_to_reduce(self.args[0], self.args[1]), '__str__')
+			for a in self.args[2:]:
+				ret = func_to_reduce(ret, a)
+			return ret
 		else:
 			raise Exception('How does an operator have {} required arguments?'.
 								format(self.unseeded_base_object.req_arg_len))

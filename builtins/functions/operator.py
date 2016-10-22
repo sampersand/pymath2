@@ -62,12 +62,15 @@ class MultiArgOperator(Operator):
 
 		last_res = args[0]
 		for arg in args[1:]:
-			last_res = await self.scrub(await self.func_for_two_args(last_res, arg))
+			print(await self._aname, type(self.func_for_two_args))
+			val = await self.func_for_two_args(last_res, arg)
+			last_res = await self.scrub(val)
 		return last_res
 
 	# __func = UnseededFunction.func
 	# @Operator.func.getter
 	@override(Operator)
+	@property
 	async def _afunc(self):
 		assert self.func_for_two_args is not Undefined
 
@@ -78,7 +81,7 @@ class MultiArgOperator(Operator):
 		pass
 	# func = property(fget = func, fset = __func.fset)
 
-class AddSubOperator(MultiArgOperator):
+class AddOperator(MultiArgOperator):
 	@override(MultiArgOperator)
 	async def __ainit__(self, name: str, **kwargs) -> None:
 		assert name in {'+', '-'}
@@ -112,7 +115,7 @@ class AddSubOperator(MultiArgOperator):
 	async def deriv_w_args(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
 		ld = future(l.deriv(du))
 		rd = future(r.deriv(du))
-		if self._ais_plus:
+		if await self._ais_plus:
 			return await ld + await rd
 		return await ld - await rd
 
@@ -218,25 +221,41 @@ class UnaryOper(Operator):
 	async def __ainit__(self, **kwargs) -> None:
 		await super().__ainit__(priority = 1, req_arg_len = 1, **kwargs)
 
-		assert self.name in set('+-~')
+		assert await self._aname in set('+-~')
+
+	@staticmethod
+	async def _lambda_add(a):
+		return +await x._avalue
+	@staticmethod
+	async def _lambda_sub(a):
+		return -await x._avalue
+	@staticmethod
+	async def _lambda_invert(a):
+		return ~await x._avalue
 
 	@override(Operator)
 	@property
 	async def _afunc(self) -> Callable:
-		if self.name == '-':
-			return lambda x: -x.value
-		if self.name == '~':
-			return lambda x: ~x.value
-		return lambda x: +x.value
+		name = await self._aname
+		if name == '-':
+			return self._lambda_sub
+		if name == '~':
+			return self._lambda_invert
+		return self._lambda_add
 
 	@override(Operator)
 	async def deriv_w_args(self, du: Variable, *args: [ValuedObj]) -> (ValuedObj, Undefined):
 		assert len(args) == 1
 
-		if self.name == '-':
-			return -await args[0].deriv(du)
-		if self.name == '+':
-			return +await args[0].deriv(du)
+		name = future(self._aname)
+		deriv = future(args[0].deriv(du))
+		name = await name
+
+		if name == '-':
+			return -await deriv
+		if name == '+':
+			return +await deriv
+
 		return await super().deriv_w_args(self, du, *args)
 
 class InvertedOperator(Operator):
@@ -266,99 +285,98 @@ opers = {}
 async def main():
 	global opers
 	opers = {
-		'__add__': await AddSubOperator.__anew__(AddSubOperator, name = '+'),
-		'__sub__': await AddSubOperator.__anew__(AddSubOperator, name = '-'),
-		'__mul__': await MulOperator.__anew__(MulOperator, ),
-		'__truediv__': await TrueDivOperator.__anew__(TrueDivOperator, ),
-		'__floordiv__': await Operator.__anew__(Operator, name = '//', priority = 2, func = lambda l, r: l.value // r.value),
-		'__mod__': await Operator.__anew__(Operator, name = '%', priority = 2, func = lambda l, r: l.value % r.value),
-		'__matmul__': await Operator.__anew__(Operator, name = '@', priority = 2, func = lambda l, r: l.value @ r.value),
-		'__pow__': await PowOperator.__anew__(PowOperator, ),
+		'__aadd__': await AddSubOperator.__anew__(AddSubOperator, name = '+'),
+		'__asub__': await AddSubOperator.__anew__(AddSubOperator, name = '-'),
+		'__amul__': await MulOperator.__anew__(MulOperator, ),
+		'__atruediv__': await TrueDivOperator.__anew__(TrueDivOperator, ),
+		'__afloordiv__': await Operator.__anew__(Operator, name = '//', priority = 2, func = lambda l, r: l.value // r.value),
+		'__amod__': await Operator.__anew__(Operator, name = '%', priority = 2, func = lambda l, r: l.value % r.value),
+		'__amatmul__': await Operator.__anew__(Operator, name = '@', priority = 2, func = lambda l, r: l.value @ r.value),
+		'__apow__': await PowOperator.__anew__(PowOperator, ),
 
-		'__and__': await Operator.__anew__(Operator, name = '&', priority = 5, func = lambda l, r: l.value & r.value),
-		'__or__': await Operator.__anew__(Operator, name = '|', priority = 7, func = lambda l, r: l.value | r.value),
-		'__xor__': await Operator.__anew__(Operator, name = '^', priority = 6, func = lambda l, r: l.value ^ r.value),
-		'__lshift__': await Operator.__anew__(Operator, name = '<<',priority =  4, func = lambda l, r: l.value << r.value),
-		'__rshift__': await Operator.__anew__(Operator, name = '>>',priority =  4, func = lambda l, r: l.value >> r.value),
+		'__aand__': await Operator.__anew__(Operator, name = '&', priority = 5, func = lambda l, r: l.value & r.value),
+		'__aor__': await Operator.__anew__(Operator, name = '|', priority = 7, func = lambda l, r: l.value | r.value),
+		'__axor__': await Operator.__anew__(Operator, name = '^', priority = 6, func = lambda l, r: l.value ^ r.value),
+		'__alshift__': await Operator.__anew__(Operator, name = '<<',priority =  4, func = lambda l, r: l.value << r.value),
+		'__arshift__': await Operator.__anew__(Operator, name = '>>',priority =  4, func = lambda l, r: l.value >> r.value),
 
 		# '__eq__': await Operator.__anew__(Operator, '==', lambda a, b: a == b),
 		# '__ne__': await Operator.__anew__(Operator, '', lambda l, r: l.value  r.value),
-		'__lt__': await Operator.__anew__(Operator, name = '<', priority = 8, func = lambda l, r: l.value < r.value),
-		'__gt__': await Operator.__anew__(Operator, name = '>', priority = 8, func = lambda l, r: l.value > r.value),
-		'__le__': await Operator.__anew__(Operator, name = '≤', priority = 8, func = lambda l, r: l.value <= r.value),
-		'__gt__': await Operator.__anew__(Operator, name = '≥', priority = 8, func = lambda l, r: l.value >= r.value),
+		'__alt__': await Operator.__anew__(Operator, name = '<', priority = 8, func = lambda l, r: l.value < r.value),
+		'__agt__': await Operator.__anew__(Operator, name = '>', priority = 8, func = lambda l, r: l.value > r.value),
+		'__ale__': await Operator.__anew__(Operator, name = '≤', priority = 8, func = lambda l, r: l.value <= r.value),
+		'__agt__': await Operator.__anew__(Operator, name = '≥', priority = 8, func = lambda l, r: l.value >= r.value),
 
-		'__neg__': await UnaryOper.__anew__(UnaryOper, name = '-'),
-		'__pos__': await UnaryOper.__anew__(UnaryOper, name = '+'),
-		'__invert__': await UnaryOper.__anew__(UnaryOper, name = '~'),
+		'__aneg__': await UnaryOper.__anew__(UnaryOper, name = '-'),
+		'__apos__': await UnaryOper.__anew__(UnaryOper, name = '+'),
+		'__ainvert__': await UnaryOper.__anew__(UnaryOper, name = '~'),
 	}
 
 	opers.update({
-		'__radd__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__add__']),
-		'__rsub__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__sub__']),
-		'__rmul__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__mul__']),
-		'__rtruediv__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__truediv__']),
-		'__rfloordiv__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__floordiv__']),
-		'__rmod__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__mod__']),
-		'__rmatmul__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__pow__']),
-		'__rpow__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__pow__']),
+		'__aradd__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__aadd__']),
+		'__arsub__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__asub__']),
+		'__armul__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__amul__']),
+		'__artruediv__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__atruediv__']),
+		'__arfloordiv__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__afloordiv__']),
+		'__armod__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__amod__']),
+		'__armatmul__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__apow__']),
+		'__arpow__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__apow__']),
 
-		'__rand__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__and__']),
-		'__ror__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__or__']),
-		'__rxor__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__xor__']),
-		'__rlshift__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__lshift__']),
-		'__rrshift__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__rshift__']),
+		'__arand__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__aand__']),
+		'__aror__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__aor__']),
+		'__arxor__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__axor__']),
+		'__arlshift__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__alshift__']),
+		'__arrshift__': await InvertedOperator.__anew__(InvertedOperator, _normal_operator = opers['__arshift__']),
 	})
 
 
 	# future: async lambda
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv // await rv
-	await opers['__floordiva__']._func_setter(wrap_func)
+	await opers['__afloordiv__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv % await rv
-	await opers['__mod__'].a_func_setter(wrap_func)
+	await opers['__amod__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv @ await rv
-	await opers['__matmul__a']._func_setter(wrap_func)
+	await opers['__amatmul__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv & await rv
-	await opers['__and__'].a_func_setter(wrap_func)
+	await opers['__aand__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv | await rv
-	await opers['__or__']._afunc_setter(wrap_func)
+	await opers['__aor__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv ^ await rv
-	await opers['__xor__'].a_func_setter(wrap_func)
+	await opers['__axor__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv << await rv
-	await opers['__lshift__a']._func_setter(wrap_func)
+	await opers['__alshift__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv >> await rv
-	await opers['__rshift__a']._func_setter(wrap_func)
+	await opers['__arshift__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv < await rv
-	await opers['__lt__']._afunc_setter(wrap_func)
+	await opers['__alt__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv > await rv
-	await opers['__gt__']._afunc_setter(wrap_func)
+	await opers['__agt__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv <= await rv
-	await opers['__le__']._afunc_setter(wrap_func)
+	await opers['__ale__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r): lv, rv = future(l.value), future(r.value); return await lv >= await rv
-	await opers['__gt__']._afunc_setter(wrap_func)
+	await opers['__agt__']._afunc_setter(wrap_func)
 
 
 	def wrap_func(x): return -x.value
-	await opers['__neg__'].a_func_setter(wrap_func)
+	await opers['__aneg__']._afunc_setter(wrap_func)
 
 	def wrap_func(x): return +x.value
-	await opers['__pos__'].a_func_setter(wrap_func)
+	await opers['__apos__']._afunc_setter(wrap_func)
 
 	def wrap_func(x): return ~x.value
-	await opers['__invert__a']._func_setter(wrap_func)
+	await opers['__ainvert__']._afunc_setter(wrap_func)
 
-import asyncio
-complete(main(), asyncio.new_event_loop())
+complete(main())
 
 

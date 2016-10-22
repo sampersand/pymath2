@@ -15,21 +15,21 @@ class SeededFunction(NamedValuedObj, Derivable):
 		self.unseeded_base_object = unseeded_base_object
 		self.args = args
 
-	@NamedValuedObj.name.getter
 	@override(NamedValuedObj)
+	@property
 	async def _aname(self):
 		return self._name if self._name is not Undefined else await self.unseeded_base_object._aname
 
-	@NamedValuedObj.value.getter
 	@override(NamedValuedObj)
+	@property
 	async def _avalue(self) -> Any:
 		func = await self.unseeded_base_object._afunc
 		if hasattr(func, '__acall__'):
 			return await self.scrub(await func.__acall__(*self.args)) #double await
 		return await self.scrub(await func.__call__(*self.args)) #double await
 
-	@NamedValuedObj.hasvalue.getter
 	@override(NamedValuedObj)
+	@property
 	async def _ahasvalue(self) -> Any:
 		return await (await self._avalue)._ahasvalue #double await
 

@@ -14,12 +14,15 @@ class NamedObj(MathObj):
 	def name():
 		@final
 		def fget(self) -> (str, Undefined):
+			assert False, "don't use non-async functions!"
 			return complete(self._aname)
 		@final
 		def fset(self, val: str) -> None:
+			assert False, "don't use non-async functions!"
 			return complete(self._aname_setter(val))
 		@final
 		def fdel(self) -> None:
+			assert False, "don't use non-async functions!"
 			return complete(self._aname_deleter(val)) #normally doesnt exist
 		return locals()
 	name = property(**name())
@@ -31,10 +34,10 @@ class NamedObj(MathObj):
 	async def _aname_setter(self, val: str) -> None:
 		self._name = val
 
-	@property
-	@final
-	def hasname(self) -> bool:
-		return complete(self.hasname)
+	# @property
+	# @final
+	# def hasname(self) -> bool:
+	# 	return complete(self.hasname)
 
 	@property
 	async def _ahasname(self) -> bool:

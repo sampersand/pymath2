@@ -27,9 +27,11 @@ class UnseededFunction(NamedObj):
 	def func(self):
 		@final
 		def fget(self):
+			assert False, "don't use non-async functions!"
 			return complete(self._afunc)
 		@final
 		def fset(self, val):
+			assert False, "don't use non-async functions!"
 			return complete(self._afunc_setter(val))
 
 	@property

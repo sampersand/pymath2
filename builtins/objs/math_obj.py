@@ -3,14 +3,16 @@ from pymath2 import Undefined, complete, final
 class MathObj():
 	@final
 	def __new__(cls, *args, **kwargs):
+		assert False, "don't use non-async functions!"
 		return complete(cls.__anew__(cls, *args, **kwargs))
 	async def __anew__(cls, *args, **kwargs):
 		new = super().__new__(cls)
 		await new.__ainit__(*args, **kwargs)
 		return new
 
-	# def __init__(self, *args, **kwargs):
-	# 	return complete(self.__ainit__(*args, **kwargs))
+	def __init__(self, *args, **kwargs):
+		assert False, "don't use non-async functions!"
+		return complete(self.__ainit__(*args, **kwargs))
 
 	async def __ainit__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -35,12 +37,14 @@ class MathObj():
 
 	@final
 	def __str__(self) -> str:
+		assert False, "don't use non-async functions!"
 		return complete(self.__astr__())
 	async def __astr__(self) -> str:
 		return self.generic_str('default')
 
 	@final
 	def __repr__(self) -> str:
+		assert False, "don't use non-async functions!"
 		return complete(self.__arepr__())
 	async def __arepr__(self) -> str:
 		return '{}()'.format(self.__class__.__name__)
@@ -62,12 +66,14 @@ class MathObj():
 
 	@final
 	def __ne__(self, other: Any) -> bool:
+		assert False, "don't use non-async functions!"
 		return complete(self.__ane__(other))
 	async def __ane__(self, other: Any) -> bool:
 		return not self.__aeq__(other)
 
 	@final
 	def __eq__(self, other: Any) -> bool:
+		assert False, "don't use non-async functions!"
 		assert 0, 'make sure this isnt being used incorrectly!'
 		return complete(self.__aeq__(other))
 	async def __aeq__(self, other: Any) -> bool:
@@ -75,12 +81,14 @@ class MathObj():
 
 	@final
 	def __call__(self, *args, **kwargs):
+		assert False, "don't use non-async functions!"
 		return complete(self.__acall__(*args, **kwargs))
 	async def __acall__(self, *args, **kwargs):
 		raise NotImplementedError
 
 	@final
 	def __getattr__(self, attr):
+		assert False, "don't use non-async functions!"
 		return complete(self.__agetattr__(attr))
 	async def __agetattr__(self, attr):
 		return super().__getattr__(attr)
@@ -95,6 +103,7 @@ class MathObj():
 
 	@final
 	def __delattr__(self, name):
+		assert False, "don't use non-async functions!"
 		return complete(self.__adelattr__(name))
 	async def __adelattr__(self, name):
 		return super().__delattr__(name, val)

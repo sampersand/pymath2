@@ -14,6 +14,7 @@ class Derivative(NamedValuedObj):
 
 	@final
 	def __truediv__(self, other: 'Derivative') -> 'UnseededFunction':
+		assert False, "don't use non-async functions!"
 		if not isinstance(other, Derivative):
 			return super().__truediv__(self, other)
 		return complete(self.__atruediv__(other))

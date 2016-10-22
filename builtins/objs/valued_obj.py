@@ -16,12 +16,15 @@ class ValuedObj(Operable, Derivable):
 	def value():
 		@final
 		def fget(self) -> (Any, Undefined):
+			assert False, "don't use non-async functions!"
 			return complete(self._avalue)
 		@final
 		def fset(self, val: Any) -> None:
+			assert False, "don't use non-async functions!"
 			return complete(self._avalue_setter(val))
 		@final
 		def fdel(self) -> None:
+			assert False, "don't use non-async functions!"
 			return complete(self._avalue_deleter())
 		return locals()
 	value = property(**value())
@@ -39,6 +42,7 @@ class ValuedObj(Operable, Derivable):
 	@property
 	@final
 	def hasvalue(self) -> bool:
+		assert False, "don't use non-async functions!"
 		return complete(self._ahasvalue)
 
 	@property
@@ -51,37 +55,42 @@ class ValuedObj(Operable, Derivable):
 
 	@final
 	def __abs__(self) -> float:
+		assert False, "don't use non-async functions!"
 		return complete(self.__aabs__())
 	async def __aabs__(self) -> float:
 		return abs(self.__afloat__(self))
 
 	@final
 	def __bool__(self) -> bool: 
-		assert 0, 'make sure this isnt being used incorrectly!'
+		assert False, "don't use non-async functions!"
 		return complete(self.__aabs__())
 	async def __abool__(self) -> bool:
 		return bool(await self._avalue)
 
 	@final
 	def __int__(self) -> int:
+		assert False, "don't use non-async functions!"
 		return complete(self.__aint__())
 	async def __aint__(self) -> int:
 		return int(self.value)
 
 	@final
 	def __float__(self) -> float:
+		assert False, "don't use non-async functions!"
 		return complete(self.__afloat__())
 	async def __afloat__(self) -> float:
 		return float(self.value) 
 
 	@final
 	def __complex__(self) -> complex:
+		assert False, "don't use non-async functions!"
 		return complete(self.__acomplex__())
 	async def __acomplex__(self) -> complex:
 		return complex(self.value)
 
 	@final
 	def __round__(self, digits: int) -> (int, float):
+		assert False, "don't use non-async functions!"
 		return complete(self.__around__())
 
 	async def __around__(self, digits: int) -> (int, float):
