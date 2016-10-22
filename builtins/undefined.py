@@ -1,5 +1,8 @@
 from typing import Any
+from pymath2 import final
+@final
 class UndefinedClass():
+	pass
 	def __str__(self) -> str: return 'Undefined'
 	def __repr__(self) -> str: return '{}()'.format(self.__class__.__name__)
 
@@ -52,6 +55,9 @@ class UndefinedClass():
 
 	@property
 	def hasvalue(self) -> bool:
+		return complete(self._ahasvalue)
+
+	async def _ahasvalue(self):
 		return False
 
 	@property

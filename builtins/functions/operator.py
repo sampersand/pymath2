@@ -1,6 +1,6 @@
 from typing import Callable
 
-from pymath2 import Undefined, override, complete
+from pymath2 import Undefined, override, complete, future
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.valued_obj import ValuedObj
 
@@ -81,42 +81,21 @@ class MultiArgOperator(Operator):
 		pass
 	# func = property(fget = func, fset = __func.fset)
 
-class AddOperator(MultiArgOperator):
+class SubOperator(MultiArgOperator):
 	@override(MultiArgOperator)
-	async def __ainit__(self, name: str, **kwargs) -> None:
-		assert name in {'+', '-'}
-
-		await super().__ainit__(name = name, priority = 3, **kwargs)
+	async def __ainit__(self, **kwargs) -> None:
+		await super().__ainit__(name = '-', priority = 3, **kwargs)
 
 	@staticmethod
-	async def _lambda_plus(l, r):
-		lv = future(l._avalue)
-		rv = future(r._avalue)
-		return await lv + await rv
-
-	@staticmethod
-	async def _lambda_minus(l, r):
+	async def func_for_two_args(l, r):
 		lv = future(l._avalue)
 		rv = future(r._avalue)
 		return await lv - await rv
 
 	@override(MultiArgOperator)
-	@property
-	async def func_for_two_args(self):
-		if await self._ais_plus:
-			return self._lambda_plus
-		return self._lambda_minus
-
-	@property
-	async def _ais_plus(self) -> bool:
-		return await self._aname == '+'
-
-	@override(MultiArgOperator)
 	async def deriv_w_args(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
 		ld = future(l.deriv(du))
 		rd = future(r.deriv(du))
-		if await self._ais_plus:
-			return await ld + await rd
 		return await ld - await rd
 
 
@@ -126,11 +105,41 @@ class AddOperator(MultiArgOperator):
 		# print(args)
 		if not any(x == 0 for x in args):
 			return None
-		if self._ais_plus:
-			for i in range(len(args)):
-				if args[i] == 0:
-					args.pop(i)
-			return cls(self, args, **kwargs_to_pass)
+		assert False, 'todo'
+		# for i in range(len(args)):
+		# 	if args[i] == 0:
+		# 		args.pop(i)
+		# return cls(self, args, **kwargs_to_pass)
+
+class AddOperator(MultiArgOperator):
+	@override(MultiArgOperator)
+	async def __ainit__(self, **kwargs) -> None:
+		await super().__ainit__(name = '+', priority = 3, **kwargs)
+
+	@staticmethod
+	async def func_for_two_args(l, r):
+		lv = future(l._avalue)
+		rv = future(r._avalue)
+		return await lv + await rv
+
+	@override(MultiArgOperator)
+	async def deriv_w_args(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
+		ld = future(l.deriv(du))
+		rd = future(r.deriv(du))
+		return await ld + await rd
+
+
+	@override(Operator)
+	def simplify(self, cls, args, kwargs_to_pass):
+		args = list(args)
+		# print(args)
+		if not any(x == 0 for x in args):
+			return None
+		for i in range(len(args)):
+			if args[i] == 0:
+				args.pop(i)
+		return cls(self, args, **kwargs_to_pass)
+
 
 class MulOperator(MultiArgOperator):
 
@@ -285,8 +294,8 @@ opers = {}
 async def main():
 	global opers
 	opers = {
-		'__aadd__': await AddSubOperator.__anew__(AddSubOperator, name = '+'),
-		'__asub__': await AddSubOperator.__anew__(AddSubOperator, name = '-'),
+		'__aadd__': await AddOperator.__anew__(AddOperator),
+		'__asub__': await SubOperator.__anew__(SubOperator),
 		'__amul__': await MulOperator.__anew__(MulOperator, ),
 		'__atruediv__': await TrueDivOperator.__anew__(TrueDivOperator, ),
 		'__afloordiv__': await Operator.__anew__(Operator, name = '//', priority = 2, func = lambda l, r: l.value // r.value),
