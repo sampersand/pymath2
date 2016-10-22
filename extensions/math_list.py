@@ -7,15 +7,19 @@ class MathList(NamedValuedObj, list):
 		return {ele: pos for pos, val in enumerate(zip(*args)) for ele in val}
 	_len_attrs = {} #would be like {1: ('x'), 2: ('x', 'y'), 3: ('i', 'j', 'k')}
 
-	@override(list)
-	def __new__(cls, *args, name = Undefined, **kwargs):
-		return super().__new__(cls, *args, **kwargs)
+	@override(NamedValuedObj)
+	def __anew__(cls, *args, name = Undefined, **kwargs):
+		return super().__anew__(cls, *args, **kwargs)
 
 	print_parens = ('(', ')')
 	@override(NamedValuedObj, list)
-	def __init__(self, *args, **kwargs):
-		super().__init__(**kwargs)
-		list.__init__(self, list(self.scrub(x) for x in args)) #baaad
+	def __ainit__(self, *args, **kwargs):
+		super().__ainit__(**kwargs)
+		argsl = [future(self.scrub(arg)) for arg in args]
+		args = []
+		for arg in argl:
+			args.append(await arg)
+		list.__init__(self, args) #baaad
 		for attr_name in self._attrs_list_for_this_len:
 			attr = getattr(self, attr_name)
 			if not attr.hasname:
@@ -28,9 +32,10 @@ class MathList(NamedValuedObj, list):
 	@property
 	def attrs(self) -> dict:
 		return {val: getattr(self, val) for val in self._attrs_list_for_this_len}
+
 	@override(NamedValuedObj)
-	def scrub(self, arg):
-		ret = super().scrub(arg)
+	async def scrub(self, arg):
+		ret = await super().scrub(arg)
 		if isinstance(ret, Constant):
 			ret = Variable(value = ret.value)
 		return ret
@@ -63,20 +68,20 @@ class MathList(NamedValuedObj, list):
 	def _len_attr(self) -> dict:
 		return self._len_attrs[len(self)]
 
-
-	def __getattr__(self, attr):
+	@override(NamedValuedObj)
+	async def __agetattr__(self, attr):
 		try:
 			ind = self._attrs_list_for_this_len[attr]
 		except ValueError:
 			pass
 		else:
 			return self[ind]
-		return super().__getattr__(attr)
-
-	def __setattr__(self, attr, val):
+		return super().__agetattr__(attr)
+	@override(NamedValuedObj)
+	async def __asetattr__(self, attr, val):
 		if attr not in self._attrs_list_for_this_len:
-			return super().__setattr__(attr, val)
-		self[self._len_attr[attr]] = self.scrub(val)
+			return super().__asetattr__(attr, val)
+		self[self._len_attr[attr]] = await self.scrub(val)
 
 
 

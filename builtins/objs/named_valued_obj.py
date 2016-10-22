@@ -5,9 +5,13 @@ from .valued_obj import ValuedObj
 class NamedValuedObj(NamedObj, ValuedObj):
 
 	@override(NamedObj, ValuedObj)
-	def __str__(self) -> str:
-		return ValuedObj.__str__(self) if self.hasvalue else NamedObj.__str__(self)
+	async def __astr__(self) -> str:
+		return await ValuedObj.__astr__(self) if await self._ahasvalue else await NamedObj.__astr__(self)
 
 	@override(NamedObj, ValuedObj)
-	def __repr__(self) -> str:
-		return '{}({!r}, {!r})'.format(self.__class__.__name__, self.name, self.value)
+	async def __arepr__(self) -> str:
+		name = future(self._aname)
+		value = future(self._avalue)
+		return '{}({}, {})'.format(self.__class__.__name__,
+				(await self.async_getattr(await name))(),
+				(await self.async_getattr(await value))())

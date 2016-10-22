@@ -1,4 +1,4 @@
-from pymath2 import Undefined, Constant, final
+from pymath2 import Undefined, Constant, final, override
 from .math_list import MathList
 from pymath2.builtins.objs.user_obj import UserObj
 class AbstractVector(MathList):
@@ -24,8 +24,9 @@ class AbstractVector(MathList):
 			name = '{}{}_'.format(p1.name, p2.name)
 		return type(self)(*(x[1] - x[0] for x in zip(p1, p2)), name = name)
 
-	def deriv(self, du):
-		return type(self)(*(arg.deriv(du) for arg in self))
+	@override(MathList)
+	async def _aderiv(self, du):
+		return type(self)(*(arg._aderiv(du) for arg in self))
 
 	def dot(self, other):
 		return sum(x[0] * x[1] for x in zip(self, other))

@@ -7,17 +7,18 @@ class UserObj(MathObj):
 	_parse_args_regex = Undefined
 
 	@override(MathObj)
-	def __init__(self, *args, **kwargs) -> None:
-		if __debug__:
-			assert self._parse_args_regex is not Undefined, '_parse_args_regex cannot be undefined'
+	async def __ainit__(self, *args, **kwargs) -> None:
+		assert self._parse_args_regex is not Undefined, '_parse_args_regex cannot be undefined'
+
 		parsed_args = self.parse_arg()
 		kwargs.update(parsed_args) 
-		super().__init__(*args, **kwargs)
+		await super().__ainit__(*args, **kwargs)
 
 	def parse_arg(self) -> dict:
 		context = stack()[-1].code_context
-		if __debug__:
-			assert len(context) == 1, context #doesnt need to be, just havent seen an instance when it isnt
+
+		assert len(context) == 1, context #doesnt need to be, just havent seen an instance when it isnt
+
 		context = context[0]
 		match = search(self._parse_args_regex, context)
 		if match == None:

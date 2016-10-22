@@ -12,8 +12,8 @@ class _fancy_stuff(dict):
 	def process(self, name, inp):
 		if not isinstance(inp, tuple(_fancy_stuff.types)):
 			return inp
-		if __debug__:
-			assert len(inp) == 2
+
+		assert len(inp) == 2
 
 		# if isinstance(inp, (list, tuple)):
 		setattr(self, name, inp[1])

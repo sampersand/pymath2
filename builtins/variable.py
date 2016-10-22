@@ -9,17 +9,22 @@ class Variable(NamedValuedObj, Derivable):
 		return self is not du and self.name != du.name
 
 	@override(Derivable)
-	def deriv(self, du: 'Variable') -> (0, 1):
-		return self.scrub(int(not self.isconst(du)))
-
-	@override(NamedValuedObj)
-	def __repr__(self) -> str:
-		return '{}({})'.format(self.__class__.__name__, 
-			', '.join(x for x in (repr(self.name), 'value=' + repr(self.value) if self.hasvalue else Undefined) if x is not Undefined))
-
+	async def _aderiv(self, du: 'Variable') -> (0, 1):
+		return await self.scrub(int(not await self.isconst(du)))
 
 @final
 class UserVariable(Variable):
 	@override(Variable)
-	def __init__(self, name = Undefined, value = Undefined):
-		super().__init__(value = value, name = name)
+	async def __ainit__(self, name = Undefined, value = Undefined):
+		await super().__ainit__(value = value, name = name)
+
+	@override(NamedValuedObj)
+	async def __arepr__(self) -> str:
+		name = future(self._aname)
+		value = future(self._avalue)
+		hasvalue = future(self._ahasvalue)
+		prname = (await self.async_getattr(await name))()
+		prvalue = 'value=' + (await self.async_getattr(await value))() if await hasvalue else Undefined
+		return '{}({})'.format(self.__class__.__name__, 
+			', '.join(x for x in (prname, prvalue) if x is not Undefined))
+

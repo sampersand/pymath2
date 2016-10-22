@@ -2,7 +2,7 @@ from typing import Any, Callable
 import math
 
 from .fancy_text import FancyText
-from pymath2 import Undefined
+from pymath2 import Undefined, override
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.functions.unseeded_function import UnseededFunction
 from pymath2.builtins.functions.seeded_function import SeededFunction
@@ -16,11 +16,13 @@ class SeededMathFunction(SeededFunction):
 			# return super().value
 	# @override(Derivable)
 
+	@override(SeededFunction)
 	@property
 	def hasvalue(self):
 		return self.args[0].hasvalue
 
-	def deriv(self, du: Variable) -> 'SeededFunction':
+	@override(SeededFunction)
+	async def _aderiv(self, du: Variable) -> 'SeededFunction':
 		return self.unseeded_base_object.deriv_w_args(du, self.args[0])
 
 class MathFunction(UnseededFunction):

@@ -2,14 +2,14 @@ from types import CoroutineType, FunctionType, GeneratorType, MethodType
 from typing import Type, Callable, TypeVar, Any, Union
 def get_obj_name(obj_or_name):
 	""" Determine the name of the object """
-	if isinstance(name, str):
-		return name
-	elif type(obj) == staticmethod:
-		return obj.__func__.__name__
-	elif type(obj) == property:
-		return get_obj_name(obj.fget)
-	elif hasattr(obj, '__name__'):
-		return obj.__name__
+	if isinstance(obj_or_name, str):
+		return obj_or_name
+	elif type(obj_or_name) == staticmethod:
+		return obj_or_name.__func__.__name__
+	elif type(obj_or_name) == property:
+		return get_obj_name(obj_or_name.fget)
+	elif hasattr(obj_or_name, '__name__'):
+		return obj_or_name.__name__
 	else:
 		raise ValueError('No way to determine name for ' + str(obj.__class__))
 
@@ -25,11 +25,14 @@ def _determine_presence(classes, name, do_crash):
 			return False # else
 	return True
 
+from .copy_doc import copy_doc
+from .check_final import check_final
+
 T = TypeVar('T', CoroutineType, FunctionType, GeneratorType, MethodType, property, staticmethod, classmethod)
 def override(*parents: Type[Any],
 			 name: str = None,
 			 do_crash: bool = None,
-			 copy_doc: bool = True) -> Union[bool, None, Any]:
+			 do_copy_doc: bool = True) -> Union[bool, None, Any]:
 	"""
 	Confirm that a method is overriding a method of the name in every parent.
 	
@@ -75,7 +78,7 @@ def override(*parents: Type[Any],
 		               which name will be derived. (default: None)
 		do_crash    -- If True, a NameError will be raised if name isn't found.
 		               (default: None --> False if name is specified, True otherwise)
-		copy_doc    -- If True, the documentation from the first parent's instance will be copied to 
+		do_copy_doc -- If True, the documentation from the first parent's instance will be copied to 
 		               the wrapper's argument. If a wrapper isn't used, this does nothing.
 		               (default: True)
 		check_final -- If True, this will make sure all the parent elements arent final.
@@ -100,11 +103,9 @@ def override(*parents: Type[Any],
 		""" Determine (if possible) inp_obj's name, copy doc if needed, and pass it to override ."""
 		obj_name = get_obj_name(inp_obj)
 		_determine_presence(parents, obj_name, True if do_crash == None else do_crash)
-		if copy_doc:
-			from .copy_doc import copy_doc
+		if do_copy_doc:
 			copy_doc(parents[0], inp_obj, obj_name)
 		if check_final:
-			from .check_final import check_final
 			check_final(parents, obj_name, True if do_crash == None else do_crash)
 		return inp_obj
 

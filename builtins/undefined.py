@@ -58,7 +58,8 @@ class UndefinedClass():
 	def value(self) -> 'self':
 		return self
 
-	def deriv(self, du) -> 'self': return self
+	def deriv(self, du) -> 'self':
+		return self
 Undefined = UndefinedClass()
 
 

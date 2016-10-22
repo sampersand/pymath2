@@ -10,9 +10,15 @@ class Derivable(MathObj):
 	async def _aisconst(self, du: 'Variable') -> bool:
 		raise NotImplementedError
 
+	@final
 	def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
-		return Undefined
+		return complete(self._aderiv(du))
 
+	async def _aderiv(self, du: 'Variable') -> ('ValuedObj', Undefined):
+		raise NotImplementedError
+
+	@final
 	def d(self, other: 'Variable') -> 'UnseededFunction':
 		from .derivative import Derivative
 		return Derivative(self) / Derivative(other)
+	

@@ -7,16 +7,18 @@ from .derivable import Derivable
 class Constant(ValuedObj, Derivable):
 
 	@override(Derivable)
-	def deriv(self, du: 'Variable') -> 0:
+	async def _aderiv(self, du: 'Variable') -> 0:
 		return 0
 
 	@override(ValuedObj)
-	def __repr__(self) -> str:
+	async def __arepr__(self) -> str:
+		value = future(self._avalue)
+		hasvalue = future(self._ahasvalue)
 		return '{}({})'.format(self.__class__.__name__,
-							   repr(self.value) if self.hasvalue else '')
+							   (await self.async_getattr(await value))() if await hasvalue else '')
 
 @final
 class UserConstant(Constant):
 	@override(Constant)
-	def __init__(self, value):
-		super().__init__(value = value)
+	async def __ainit__(self, value):
+		await super().__ainit__(value = value)

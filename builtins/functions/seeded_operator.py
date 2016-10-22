@@ -22,7 +22,7 @@ class SeededOperator(SeededFunction):
 				# return cls(unseeded_base_object, args, **kwargs)
 				return cls(unseeded_base_object= unseeded_base_object, args = args_to_pass, **kwargs)
 
-	def __new__(cls, unseeded_base_object: 'Operator', args: tuple, **kwargs) -> 'SeededOperator':
+	async def __anew__(cls, unseeded_base_object: 'Operator', args: tuple, **kwargs) -> 'SeededOperator':
 		collapsed = cls._collapse_args(unseeded_base_object, args, kwargs)
 		if collapsed != None:
 			return collapsed
@@ -30,19 +30,21 @@ class SeededOperator(SeededFunction):
 		# print('simplified', simplified)
 		# if simplified != None:
 			# return simplified
-		return super().__new__(cls)
+		return await super().__anew__(cls, unseeded_base_object = unseeded_base_object, args = args, **kawrgs)
 
 	@override(SeededFunction)
-	def __init__(self, unseeded_base_object, args, **kwargs) -> None:
-		super().__init__(unseeded_base_object = unseeded_base_object, args = args, **kwargs)
+	async def __ainit__(self, unseeded_base_object, args, **kwargs) -> None:
+		await super().__ainit__(unseeded_base_object = unseeded_base_object, args = args, **kwargs)
 
 		if __debug__:
 			from .operator import Operator
 			assert isinstance(self.unseeded_base_object, Operator)
 
 	@override(SeededFunction)
-	def __repr__(self) -> str:
-		return '{}({!r}, {!r})'.format(self.__class__.__name__, self.unseeded_base_object, self.args)
+	async def __arepr__(self) -> str:
+		return '{}({}, {})'.format(self.__class__.__name__,
+			(await self.async_getattr(self.unseeded_base_object))(),
+			(await self.async_getattr(self.args))())
 
 
 	def _is_lower_precedence(self, other: SeededFunction) -> bool:
@@ -63,9 +65,9 @@ class SeededOperator(SeededFunction):
 		return '{} {} {}'.format(l, self.name, r)
 
 	@override(SeededFunction)
-	def __str__(self) -> str:
-		if self.hasvalue:
-			return str(self.value)
+	async def __astr__(self) -> str:
+		if await self._ahasvalue:
+			return str(await self._avalue)
 		req_arg_len = self.unseeded_base_object.req_arg_len
 		if req_arg_len == 1:
 			return '{}{}'.format(self.name, self._possibly_surround_in_parens(self.args[0]))
@@ -79,8 +81,8 @@ class SeededOperator(SeededFunction):
 								format(self.unseeded_base_object.req_arg_len))
 
 	@override(SeededFunction)
-	def deriv(self, du: Variable) -> ('ValuedObj', Undefined):
-		return self.unseeded_base_object.deriv_w_args(du, *self.args) #await
+	async def _aderiv(self, du: Variable) -> ('ValuedObj', Undefined):
+		return await self.unseeded_base_object.deriv_w_args(du, *self.args) #await
 
 
 

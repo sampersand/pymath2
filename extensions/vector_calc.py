@@ -2,8 +2,7 @@ from pymath2 import UnseededFunction, Derivative
 from .vector import AbstractVector
 
 def gradiant(args, func):
-	if __debug__:
-		assert len(args), 'cannot have 0 args!'
+	assert len(args), 'cannot have 0 args!'
 
 	arg_iter = iter(args)
 	
@@ -24,8 +23,8 @@ def gradiant(args, func):
 
 
 def dir_deriv(args, func, unit_vector):
-	if __debug__:
-		assert len(args) == len(unit_vector), 'len mismatch'
+	assert len(args) == len(unit_vector), 'len mismatch'
+
 	return gradiant(args, func).dot(unit_vector)
 
 # dir_deriv = UnseededFunction(dir_deriv, 'dir_deriv', '(x0, y0, ...), f, u', 'gradiant((x0, y0, ...), f) · u', -1)

@@ -1,7 +1,7 @@
 import inspect
 
 from typing import Any
-from pymath2 import Undefined
+from pymath2 import Undefined, complete
 from .objs.math_obj import MathObj
 
 class Operable(MathObj):
@@ -9,7 +9,7 @@ class Operable(MathObj):
 		from pymath2.builtins.functions.operator import opers
 		if other is Undefined:
 			return opers[inspect.stack()[1][3]](self)
-		return opers[inspect.stack()[1][3]](self, other)
+		return complete(opers[inspect.stack()[1][3]].__ainit__(self, other))
 
 	def __add__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)
 	def __sub__(self, other: Any) -> 'SeededOperator': return self._get_oper(other)

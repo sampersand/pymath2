@@ -1,13 +1,14 @@
 from typing import Any
-from pymath2 import Undefined, override
+from pymath2 import Undefined, override, future
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.valued_obj import ValuedObj
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 from pymath2.builtins.derivable import Derivable
 class SeededFunction(NamedValuedObj, Derivable):
+
 	@override(NamedValuedObj)
-	def __init__(self, unseeded_base_object: 'UnseededFunction', args: tuple = Undefined, **kwargs) -> None:
-		super().__init__(**kwargs)
+	async def __ainit__(self, unseeded_base_object: 'UnseededFunction', args: tuple = Undefined, **kwargs) -> None:
+		await super().__ainit__(**kwargs)
 		if __debug__:
 			from .unseeded_function import UnseededFunction
 			assert isinstance(unseeded_base_object, UnseededFunction), '{}, type {}'.format(unseeded_base_object, type(unseeded_base_object))
@@ -16,36 +17,43 @@ class SeededFunction(NamedValuedObj, Derivable):
 
 	@NamedValuedObj.name.getter
 	@override(NamedValuedObj)
-	def name(self):
-		return self._name if self._name is not Undefined else self.unseeded_base_object.name
+	async def _aname(self):
+		return self._name if self._name is not Undefined else await self.unseeded_base_object._aname
 
 	@NamedValuedObj.value.getter
 	@override(NamedValuedObj)
-	def value(self) -> Any:
-		return self.scrub(self.unseeded_base_object.func(*self.args)) #double await
+	async def _avalue(self) -> Any:
+		func = await self.unseeded_base_object._afunc
+		if hasattr(func, '__acall__'):
+			return await self.scrub(await func.__acall__(*self.args)) #double await
+		return await self.scrub(await func.__call__(*self.args)) #double await
 
 	@NamedValuedObj.hasvalue.getter
 	@override(NamedValuedObj)
-	def hasvalue(self) -> Any:
-		return self.value.hasvalue #double await
+	async def _ahasvalue(self) -> Any:
+		return await (await self._avalue)._ahasvalue #double await
 
 	@override(NamedValuedObj)
-	def __str__(self) -> str:
-		if self.hasvalue:
-			return str(self.value)
-		return '{}{}({})'.format(self.name,
-								 self.unseeded_base_object._prime_str(self.unseeded_base_object.deriv_num),
-								 str(self.args) if self.args is Undefined else ', '.join(str(x) for x in self.args))
+	async def __astr__(self) -> str:
+
+		if await self._ahasvalue:
+			return str(await self._avalue)
+		name = future(self._aname)
+		primestr = future(self._prime_str(self.unseeded_base_object.deriv_num))
+		args = str(self.args) if self.args is Undefined else ', '.join(str(x) for x in self.args)
+		return '{}{}({})'.format(name, primestr, args)
 
 	@override(NamedValuedObj)
-	def __repr__(self) -> str:
-		return '{}({!r}{}{})'.format(self.__class__.__name__, self.unseeded_base_object, 
-			', {!r}'.format(self.args) if self.args is not Undefined else '',
-			', {!r}'.format(self.args) if self.name is not Undefined else '',)
+	async def __arepr__(self) -> str:
+		baseobj = future(self.unseeded_base_object.__arepr__())
+		hasname = future(self._ahasname)
+		name = future(self._aname)
+		args = ', {}'.format((await self.async_getattr(args, '__repr__'))()) if self.args is not Undefined else ''
+		return '{}({}{}{})'.format(self.__class__.__name__, await baseobj, args, await name if await hasname else '')
 
 	@override(Derivable)
-	def isconst(self, du):
-		return self.hasvalue #await #maybe something with du? 
+	async def _aisconst(self, du):
+		return await self._ahasvalue #await #maybe something with du? 
 
 
 	# def deriv(self, du: Variable) -> 'SeededFunction':
@@ -55,8 +63,8 @@ class SeededFunction(NamedValuedObj, Derivable):
 
 
 	@staticmethod
-	def _gen_wrapped_func(val, du):
-		deriv = val.deriv(du)
+	async def _gen_wrapped_func(val, du):
+		deriv = future(val._aderiv(du))
 		# print(deriv)
 		# b = deriv.unseeded_base_object.func
 		# print(b)
@@ -79,14 +87,15 @@ class SeededFunction(NamedValuedObj, Derivable):
 		# print('I\'m here')
 
 		# return types.FunctionType(y_code, y.__globals__, 'f')
-		return deriv
+		return await deriv
 
 	@override(Derivable)
-	def deriv(self, du: Variable) -> 'UnseededFunction':
+	async def _aderiv(self, du: Variable) -> 'UnseededFunction':
 		from .unseeded_function import UnseededFunction
 
 		req_arg_len = self.unseeded_base_object.req_arg_len #future
-		func = self._gen_wrapped_func(self.value, du)
+		func = future(self._gen_wrapped_func(await self._avalue, du))
+		func = await func
 		func_str = str(func)
 		uns_func =  UnseededFunction(
 							  func = lambda *args: func(*args), #await
@@ -98,8 +107,8 @@ class SeededFunction(NamedValuedObj, Derivable):
 		return uns_func
 		# print(derived_function)
 	@override(Derivable)
-	def deriv(self, du: Variable) -> 'SeededFunction':
-		return self.value.deriv(du)
+	async def _aderiv(self, du: Variable) -> 'SeededFunction':
+		return await (await self._avalue)._aderiv(du)
 
 
 
