@@ -55,17 +55,12 @@ class MathObj():
 		return '{{{} {}}}'.format(prefix, cls.__qualname__)
 
 	@final
-	def __str__(self) -> str:
-		return self._complete_func()
-	async def __astr__(self) -> str:
-		return self.generic_str('default')
+	def __str__(self) -> str: return self._complete_func()
+	async def __astr__(self) -> str: return self.generic_str('default')
 
 	@final
-	def __repr__(self) -> str:
-		assert False, "don't use non-async functions!"
-		return complete(self.__arepr__())
-	async def __arepr__(self) -> str:
-		return '{}()'.format(self.__class__.__name__)
+	def __repr__(self) -> str: return self._complete_func()
+	async def __arepr__(self) -> str: return '{}()'.format(self.__class__.__name__)
 
 	@staticmethod
 	async def scrub(arg: Any) -> 'MathObj':
