@@ -1,38 +1,54 @@
+from inspect import stack
 from typing import Any
 from pymath2 import Undefined, complete, final
 class MathObj():
+
+	@final
+	@classmethod
+	def _complete_class_func(cls, *args, **kwargs):
+		async_name = cls._get_async_name(stack()[1][3])
+		assert hasattr(cls, async_name)
+		ret = getattr(cls, async_name)(cls, *args, **kwargs)
+		return complete(ret)
+
+	@final
+	def _complete_func(self, *args, **kwargs):
+		async_name = self._get_async_name(stack()[1][3])
+		assert hasattr(self, async_name)		
+		ret = getattr(self, async_name)(*args, **kwargs)
+		return complete(ret)
+
+
 	@final
 	def __new__(cls, *args, **kwargs):
-		assert False, "don't use non-async functions!"
-		return complete(cls.__anew__(cls, *args, **kwargs))
+		return cls._complete_class_func(*args, **kwargs)
+
 	async def __anew__(cls, *args, **kwargs):
 		new = super().__new__(cls)
 		await new.__ainit__(*args, **kwargs)
+		super(MathObj, new).__init__()
 		return new
 
 	def __init__(self, *args, **kwargs):
-		assert False, "don't use non-async functions!"
-		return complete(self.__ainit__(*args, **kwargs))
+		return self._complete_func(*args, **kwargs)
 
 	async def __ainit__(self, *args, **kwargs):
-		# if not hasattr(super(), '__ainit__'):
 		super().__init__(*args, **kwargs)
-		# else:
-		# super().__ainit__(*args, **kwargs)
+
+	@staticmethod
+	def _get_async_name(name):
+		if name[:2] == '__':
+			return '{}a{}'.format(name[:2], name[2:])
+		if name[:1] == '_':
+			return '{}a{}'.format(name[:1], name[1:])
+		return None
 
 	@staticmethod
 	async def async_getattr(obj, attr: str = '__repr__'):
-		if attr[:2] == '__':
-			newattr = attr[:2] + 'a' + attr[2:]
-			if hasattr(obj, newattr):
-				return await getattr(obj, newattr)
-		elif attr[:1] == '_':
-			newattr = attr[:1] + 'a' + attr[1:]
-			if hasattr(obj, newattr):
-				return await getattr(obj, newattr)
-
-		if hasattr(obj, attr):
-			return getattr(obj, attr)
+		async_name = MathObj._get_async_name(attr)
+		if async_name != None and hasattr(obj, async_name):
+			return await getattr(obj, async_name)
+		return getattr(obj, attr)
 
 	@classmethod
 	def generic_str(cls: type, prefix: str) -> str:
@@ -40,8 +56,7 @@ class MathObj():
 
 	@final
 	def __str__(self) -> str:
-		assert False, "don't use non-async functions!"
-		return complete(self.__astr__())
+		return self._complete_func()
 	async def __astr__(self) -> str:
 		return self.generic_str('default')
 
