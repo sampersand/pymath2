@@ -22,7 +22,7 @@ class UserObj(MathObj):
 		context = context[0]
 		match = search(self._parse_args_regex, context)
 		if match == None:
-			raise ValueError('No match found!')
+			raise ValueError('No match found!' + str(type(self)))
 
 		return self.process_match(match.groupdict())
 

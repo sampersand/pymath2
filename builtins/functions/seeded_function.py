@@ -19,6 +19,13 @@ class SeededFunction(NamedValuedObj, Derivable):
 		await abase
 		await aargs
 
+	@property
+	async def _args_str(self):
+		ret = []
+		for arg in (future(self.async_getattr(arg)) for arg in self.args):
+			ret.append(await arg)
+		return str(ret)
+
 	@override(NamedValuedObj)
 	@property
 	async def _aname(self):
@@ -28,11 +35,27 @@ class SeededFunction(NamedValuedObj, Derivable):
 	@property
 	async def _avalue(self) -> Any:
 		func = await self.unseeded_base_object._afunc
+
+		from pymath2 import enable_complete, disable_complete, add_global_loop, remove_global_loop
+
+		add_global_loop()
+		# disable_complete()
+
 		if hasattr(func, '__acall__'):
+			assert 0, 'remove me'
 			res = await func.__acall__(*self.args)
-		else:
-			res = func.__call__(*self.args)
-		print(res)
+		# else:
+		print('argstr:', await self._args_str)
+		res = func.__call__(*self.args)
+
+		remove_global_loop()
+		# enable_complete()
+		#this is badddddd
+		try:
+			while True:
+				res = await res
+		except TypeError:
+			pass
 		scrubbed = await self.scrub(res)
 		return scrubbed
 

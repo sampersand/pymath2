@@ -14,10 +14,22 @@ class MathObj():
 
 	@final
 	def _complete_func(self, *args, **kwargs):
-		async_name = self._get_async_name(stack()[1][3])
+		return self._maybe_complete_func(*args, docomp = True, stack_pos = 2, *kwargs)
+		# async_name = self._get_async_name(stack()[1][3])
+		# assert hasattr(self, async_name)
+		# ret = getattr(self, async_name)(*args, **kwargs)
+		# ret = complete(ret)
+		# return ret
+
+	@final
+	def _maybe_complete_func(self, *args, docomp = None, stack_pos = 1, **kwargs):
+		async_name = self._get_async_name(stack()[stack_pos][3])
 		assert hasattr(self, async_name)
 		ret = getattr(self, async_name)(*args, **kwargs)
-		ret = complete(ret)
+		if docomp == None or docomp:
+			from pymath2 import do_complete
+			if do_complete() or docomp:
+				ret = complete(ret)
 		return ret
 
 
@@ -49,7 +61,7 @@ class MathObj():
 	async def async_getattr(obj, attr: str = '__repr__'):
 		async_name = MathObj._get_async_name(attr)
 		if async_name != None and hasattr(obj, async_name):
-			return await getattr(obj, async_name)
+			return await getattr(obj, async_name)()
 		return getattr(obj, attr)
 
 	@classmethod
@@ -88,7 +100,11 @@ class MathObj():
 	async def __aeq__(self, other: Any) -> bool: return super().__eq__(other)
 
 	@final
-	def __call__(self, *args, **kwargs): return self._complete_func(*args, **kwargs)
+	def __call__(self, *args, **kwargs):
+		ret = self._maybe_complete_func(*args, **kwargs)
+		print(ret)
+		# assert 0
+		return ret
 	async def __acall__(self, *args, **kwargs): raise NotImplementedError
 
 	@final

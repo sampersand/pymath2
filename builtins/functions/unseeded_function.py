@@ -97,7 +97,7 @@ class UnseededFunction(NamedObj):
 @final
 class UserFunction(UserObj, UnseededFunction):
 	_parse_args_regex = r'''(?x)^
-		(?P<name>\w+)\s*=\s*
+		\s*(?P<name>\w+)\s*=\s*
 		(?:func|UserFunction|\w+)[(]
 			lambda\s+
 				(?P<args_str>
