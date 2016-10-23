@@ -47,13 +47,13 @@ class SeededOperator(SeededFunction):
 			(await self.async_getattr(self.args))())
 
 
-	def _is_lower_precedence(self, other: SeededFunction) -> bool:
+	async def _is_lower_precedence(self, other: SeededFunction) -> bool:
 		if not hasattr(other, 'unseeded_base_object'):
 			return False
-		return self.unseeded_base_object._is_lower_precedence(other.unseeded_base_object) #should have because self.unseeded_base_object is an operator
+		return await self.unseeded_base_object._is_lower_precedence(other.unseeded_base_object) #should have because self.unseeded_base_object is an operator
 
 	async def _possibly_surround_in_parens(self, other: MathObj) -> str:
-		if self._is_lower_precedence(other):
+		if await self._is_lower_precedence(other):
 			return '({})'.format(await other.__astr__())
 		return await other.__astr__()
 

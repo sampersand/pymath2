@@ -1,6 +1,7 @@
 from typing import Any
 from pymath2 import Undefined, override, future
 from pymath2.builtins.variable import Variable
+from pymath2.builtins.operable import Operable
 from pymath2.builtins.objs.valued_obj import ValuedObj
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 from pymath2.builtins.derivable import Derivable
@@ -28,8 +29,10 @@ class SeededFunction(NamedValuedObj, Derivable):
 	async def _avalue(self) -> Any:
 		func = await self.unseeded_base_object._afunc
 		if hasattr(func, '__acall__'):
-			return await self.scrub(await func.__acall__(*self.args)) #double await
-		return await self.scrub(await func.__call__(*self.args)) #double await
+			res = await func.__acall__(*self.args)
+		else:
+			res = func.__call__(*self.args)
+		return await self.scrub(await res)
 
 	@override(NamedValuedObj)
 	@property

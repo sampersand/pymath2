@@ -6,4 +6,6 @@ from .builtins.derivative import Derivative, UserDerivative as d
 from .builtins.functions.unseeded_function import UnseededFunction, UserFunction as func
 # from .extensions import *
 
+from .builtins.functions.operator import opers
+del opers
 __all__ = tuple(x for x in tuple(locals()) if x[0] != '_')

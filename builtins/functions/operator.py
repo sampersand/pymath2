@@ -40,8 +40,8 @@ class Operator(UnseededFunction):
 			# self.func,
 			self.req_arg_len)
 
-	def _is_lower_precedence(self, other: UnseededFunction) -> bool: #_NOT_ the same as the one in SeededFunction
-		if not hasattr(other, 'priority'):
+	async def _is_lower_precedence(self, other: UnseededFunction) -> bool: #_NOT_ the same as the one in SeededFunction
+		if not await self._ahasattr(other, 'priority'):
 			return False
 		return self.priority < other.priority
 
@@ -66,6 +66,8 @@ class MultiArgOperator(Operator):
 		last_res = args[0]
 		for arg in args[1:]:
 			val = await self.func_for_two_args(last_res, arg)
+			if val is not Undefined:
+				val = await val
 			last_res = await self.scrub(val)
 		return last_res
 
@@ -277,7 +279,7 @@ class InvertedOperator(Operator):
 		assert 'priority' not in kwargs
 		assert 'req_arg_len' not in kwargs
 
-		anorm = await(self.__asetattr__('_normal_operator', _normal_operator))
+		anorm = future(self.__asetattr__('_normal_operator', _normal_operator))
 		ainit = future(super().__ainit__(name = await _normal_operator._aname,
 						 priority = _normal_operator.priority,
 						 req_arg_len = _normal_operator.req_arg_len,
@@ -392,5 +394,3 @@ async def main():
 	await opers['__ainvert__']._afunc_setter(wrap_func)
 
 complete(main())
-
-

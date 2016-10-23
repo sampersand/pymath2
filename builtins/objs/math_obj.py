@@ -1,27 +1,40 @@
 from inspect import stack
 from typing import Any
 from pymath2 import Undefined, complete, final
+_use_complete = True
 class MathObj():
 
 	@final
 	@classmethod
-	def _complete_class_func(cls, *args, **kwargs):
+	def _complete_class_func(cls, *args, use_complete = None, **kwargs):
 		async_name = cls._get_async_name(stack()[1][3])
 		assert hasattr(cls, async_name)
 		ret = getattr(cls, async_name)(cls, *args, **kwargs)
-		return complete(ret)
+		if cls._use_complete if use_complete == None else use_complete:
+			return complete(ret)
+		return ret
 
 	@final
-	def _complete_func(self, *args, **kwargs):
+	def _complete_func(self, *args, use_complete = None, **kwargs):
 		async_name = self._get_async_name(stack()[1][3])
-		assert hasattr(self, async_name)		
+		assert hasattr(self, async_name)
+
+		global _use_complete
+		old_complete = _use_complete
+		_use_complete = False
+		print(old_complete, _use_complete)
 		ret = getattr(self, async_name)(*args, **kwargs)
-		return complete(ret)
+
+		if old_complete if use_complete == None else use_complete:
+			ret = complete(ret)
+		print(old_complete, _use_complete)
+		_use_complete = old_complete
+		return ret
 
 
 	@final
 	def __new__(cls, *args, **kwargs):
-		return cls._complete_class_func(*args, **kwargs)
+		return cls._complete_class_func(*args, **kwargs, use_complete = True)
 
 	async def __anew__(cls, *args, **kwargs):
 		new = super().__new__(cls)
@@ -30,7 +43,7 @@ class MathObj():
 		return new
 
 	def __init__(self, *args, **kwargs):
-		return self._complete_func(*args, **kwargs)
+		return self._complete_func(*args, **kwargs, use_complete = True)
 
 	async def __ainit__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -107,9 +120,15 @@ class MathObj():
 		return super().__delattr__(name, val)
 
 
-
-
-
+	async def _ahasattr(self, attr_or_obj, attr = None):
+		try: 
+			if attr == None:
+				await getattr(self, attr_or_obj)
+			else:
+				await getattr(attr_or_obj, attr)
+			return True
+		except AttributeError:
+			return False
 
 
 
