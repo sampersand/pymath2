@@ -19,16 +19,14 @@ class MathObj():
 		async_name = self._get_async_name(stack()[1][3])
 		assert hasattr(self, async_name)
 
-		global _use_complete
-		old_complete = _use_complete
-		_use_complete = False
-		print(old_complete, _use_complete)
+		# global _use_complete
+		# old_complete = _use_complete
+		# _use_complete = False
 		ret = getattr(self, async_name)(*args, **kwargs)
-
-		if old_complete if use_complete == None else use_complete:
-			ret = complete(ret)
-		print(old_complete, _use_complete)
-		_use_complete = old_complete
+		# ol
+		# if old_complete if use_complete == None else use_complete:
+		ret = complete(ret)
+		# _use_complete = old_complete
 		return ret
 
 
