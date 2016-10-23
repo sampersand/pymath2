@@ -29,17 +29,12 @@ class SeededFunction(NamedValuedObj, Derivable):
 	async def _avalue(self) -> Any:
 		func = await self.unseeded_base_object._afunc
 		if hasattr(func, '__acall__'):
-			res = func.__acall__(*self.args)
+			res = await func.__acall__(*self.args)
 		else:
 			res = func.__call__(*self.args)
-		while True:
-			try:
-				res = await res
-			except TypeError:
-				break
-		ret = await self.scrub(res)
-		print('astr:',await ret.__astr__())
-		return ret
+		print(res)
+		scrubbed = await self.scrub(res)
+		return scrubbed
 
 	@override(NamedValuedObj)
 	@property

@@ -1,38 +1,29 @@
 from inspect import stack
 from typing import Any
 from pymath2 import Undefined, complete, final
-_use_complete = True
 class MathObj():
 
 	@final
 	@classmethod
-	def _complete_class_func(cls, *args, use_complete = None, **kwargs):
+	def _complete_class_func(cls, *args, **kwargs):
 		async_name = cls._get_async_name(stack()[1][3])
 		assert hasattr(cls, async_name)
 		ret = getattr(cls, async_name)(cls, *args, **kwargs)
-		if cls._use_complete if use_complete == None else use_complete:
-			return complete(ret)
+		ret = complete(ret)
 		return ret
 
 	@final
-	def _complete_func(self, *args, use_complete = None, **kwargs):
+	def _complete_func(self, *args, **kwargs):
 		async_name = self._get_async_name(stack()[1][3])
 		assert hasattr(self, async_name)
-
-		# global _use_complete
-		# old_complete = _use_complete
-		# _use_complete = False
 		ret = getattr(self, async_name)(*args, **kwargs)
-		# ol
-		# if old_complete if use_complete == None else use_complete:
 		ret = complete(ret)
-		# _use_complete = old_complete
 		return ret
 
 
 	@final
 	def __new__(cls, *args, **kwargs):
-		return cls._complete_class_func(*args, **kwargs, use_complete = True)
+		return cls._complete_class_func(*args, **kwargs)
 
 	async def __anew__(cls, *args, **kwargs):
 		new = super().__new__(cls)
@@ -41,7 +32,7 @@ class MathObj():
 		return new
 
 	def __init__(self, *args, **kwargs):
-		return self._complete_func(*args, **kwargs, use_complete = True)
+		return self._complete_func(*args, **kwargs)
 
 	async def __ainit__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
