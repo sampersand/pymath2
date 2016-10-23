@@ -78,48 +78,31 @@ class MathObj():
 			raise TypeError(type(arg))
 
 	@final
-	def __ne__(self, other: Any) -> bool:
-		assert False, "don't use non-async functions!"
-		return complete(self.__ane__(other))
-	async def __ane__(self, other: Any) -> bool:
-		return not self.__aeq__(other)
+	def __ne__(self, other: Any) -> bool: return self._complete_func(other)
+	async def __ane__(self, other: Any) -> bool: return not await self.__aeq__(other)
 
 	@final
-	def __eq__(self, other: Any) -> bool:
-		assert False, "don't use non-async functions!"
-		assert 0, 'make sure this isnt being used incorrectly!'
-		return complete(self.__aeq__(other))
-	async def __aeq__(self, other: Any) -> bool:
-		return super().__eq__(other)
+	def __eq__(self, other: Any) -> bool: return self._complete_func(other)
+	async def __aeq__(self, other: Any) -> bool: return super().__eq__(other)
 
 	@final
-	def __call__(self, *args, **kwargs):
-		assert False, "don't use non-async functions!"
-		return complete(self.__acall__(*args, **kwargs))
-	async def __acall__(self, *args, **kwargs):
-		raise NotImplementedError
+	def __call__(self, *args, **kwargs): return self._complete_func(*args, **kwargs)
+	async def __acall__(self, *args, **kwargs): raise NotImplementedError
 
 	@final
-	def __getattr__(self, attr):
-		return super().__getattr__(name, val)
-		assert False, "don't use non-async functions!"
-		return complete(self.__agetattr__(attr))
-	async def __agetattr__(self, attr):
-		return super().__getattr__(attr)
+	def __getattr__(self, attr): return self._complete_func(attr)
+	async def __agetattr__(self, attr): return super().__getattr__(attr)
 
 	@final
 	def __setattr__(self, name, val):
 		#argh i gotta fix this later
-		return super().__setattr__(name, val)
 		assert False, "don't use non-async functions!"
 		return complete(self.__asetattr__(name, val))
 	async def __asetattr__(self, name, val):
 		return super().__setattr__(name, val)
 
 	@final
-	def __delattr__(self, name):
-		assert False, "don't use non-async functions!"
-		return complete(self.__adelattr__(name))
+	def __delattr__(self, name): return self._complete_func(name)
 	async def __adelattr__(self, name):
 		return super().__delattr__(name, val)
 

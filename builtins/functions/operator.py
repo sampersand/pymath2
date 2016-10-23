@@ -15,8 +15,10 @@ class Operator(UnseededFunction):
 	async def __ainit__(self, priority: int, **kwargs) -> None:
 		assert priority is not Undefined
 
-		await super().__ainit__(**kwargs)
-		self.priority = priority
+		ainit = future(super().__ainit__(**kwargs))
+		aprop = future(self.__asetattr__('priority', priority))
+		await ainit
+		await aprop
 
 	@property
 	def func_name(self) -> str:
@@ -275,11 +277,14 @@ class InvertedOperator(Operator):
 		assert 'priority' not in kwargs
 		assert 'req_arg_len' not in kwargs
 
-		self._normal_operator = _normal_operator
-		await super().__ainit__(name = await self._normal_operator._aname,
-						 priority = self._normal_operator.priority,
-						 req_arg_len = self._normal_operator.req_arg_len,
-						 **kwargs)
+		anorm = await(self.__asetattr__('_normal_operator', _normal_operator))
+		ainit = future(super().__ainit__(name = await _normal_operator._aname,
+						 priority = _normal_operator.priority,
+						 req_arg_len = _normal_operator.req_arg_len,
+						 **kwargs))
+		await anorm
+		await ainit
+
 	@override(Operator)
 	@property
 	async def _afunc(self) -> Callable:

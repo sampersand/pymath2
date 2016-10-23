@@ -32,7 +32,7 @@ class NamedObj(MathObj):
 		return self._name
 
 	async def _aname_setter(self, val: str) -> None:
-		self._name = val
+		await self.__asetattr__('_name', val)
 
 	# @property
 	# @final

@@ -34,10 +34,10 @@ class ValuedObj(Operable, Derivable):
 		return self._value
 
 	async def _avalue_setter(self, val: Any) -> None:
-		self._value = val
+		await self.__asetattr__('_value', val)
 
 	async def _avalue_deleter(self) -> None:
-		self._value = Undefined
+		await self._avalue_setter(Undefined)
 
 	@property
 	@final

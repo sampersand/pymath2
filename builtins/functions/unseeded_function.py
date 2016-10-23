@@ -14,14 +14,18 @@ class UnseededFunction(NamedObj):
 				 req_arg_len = Undefined,
 				 deriv_num = 0,
 				 **kwargs) -> None:
-		await super().__ainit__(**kwargs)
-		await self._afunc_setter(func)
+		ainit = future(super().__ainit__(**kwargs))
+		afunc = future(self._afunc_setter(func))
+
 		if isinstance(args_str, (list, tuple)):
 			args_str = ', '.join(str(x) for x in args_str)
-		self.args_str = args_str
-		self.body_str = body_str
-		self._req_arg_len = req_arg_len
-		self.deriv_num = deriv_num
+
+		aargs = future(self.__asetattr__('args_str', args_str))
+		abody = future(self.__asetattr__('body_str', body_str))
+		areql = future(self.__asetattr__('_req_arg_len', req_arg_len))
+		adnum = future(self.__asetattr__('deriv_num', deriv_num))
+		await ainit; await afunc; await aargs
+		await abody; await areql; await adnum
 
 	@final
 	def func(self):
@@ -39,7 +43,7 @@ class UnseededFunction(NamedObj):
 		return self._func
 
 	async def _afunc_setter(self, val) -> None:
-		self._func = val
+		await self.__asetattr__('_func', val)
 
 	@staticmethod
 	async def _aprime_str(deriv_num):

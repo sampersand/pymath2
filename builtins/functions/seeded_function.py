@@ -8,12 +8,15 @@ class SeededFunction(NamedValuedObj, Derivable):
 
 	@override(NamedValuedObj)
 	async def __ainit__(self, unseeded_base_object: 'UnseededFunction', args: tuple = Undefined, **kwargs) -> None:
-		await super().__ainit__(**kwargs)
 		if __debug__:
 			from .unseeded_function import UnseededFunction
 			assert isinstance(unseeded_base_object, UnseededFunction), '{}, type {}'.format(unseeded_base_object, type(unseeded_base_object))
-		self.unseeded_base_object = unseeded_base_object
-		self.args = args
+		ainit = future(super().__ainit__(**kwargs))
+		abase = future(self.__asetattr__('unseeded_base_object', unseeded_base_object))
+		aargs = future(self.__asetattr__('args', args))
+		await ainit
+		await abase
+		await aargs
 
 	@override(NamedValuedObj)
 	@property
