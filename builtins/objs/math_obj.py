@@ -91,9 +91,11 @@ class MathObj():
 		return None
 
 	@staticmethod
-	async def async_getattr(obj, attr: str = '__repr__'):
+	async def get_asyncattr(obj, attr: str = '__repr__', call = True):
 		async_name = MathObj._get_async_name(attr)
 		if async_name != None and hasattr(obj, async_name):
+			if not call:
+				return getattr(obj, async_name)
 			attr = await getattr(obj, async_name)()
 		else:
 			attr = getattr(obj, attr)
@@ -102,6 +104,11 @@ class MathObj():
 		return attr
 		quit('dont go here')
 		return attr
+
+	@staticmethod
+	async def has_asyncattr(obj, attr):
+		async_name = MathObj._get_async_name(attr)
+		return async_name and hasattr(obj, async_name)
 
 	@classmethod
 	def generic_str(cls: type, prefix: str) -> str:

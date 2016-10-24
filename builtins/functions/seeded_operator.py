@@ -43,8 +43,8 @@ class SeededOperator(SeededFunction):
 	@override(SeededFunction)
 	async def __arepr__(self) -> str:
 		return '{}({}, {})'.format(self.__class__.__name__,
-			(await self.async_getattr(self.unseeded_base_object)),
-			(await self.async_getattr(self.args)))
+			(await self.get_asyncattr(self.unseeded_base_object)),
+			(await self.get_asyncattr(self.args)))
 
 
 	async def _is_lower_precedence(self, other: SeededFunction) -> bool:
@@ -54,8 +54,8 @@ class SeededOperator(SeededFunction):
 
 	async def _possibly_surround_in_parens(self, other: MathObj) -> str:
 		if await self._is_lower_precedence(other):
-			return '({})'.format(await self.async_getattr(other, '__str__'))
-		return await self.async_getattr(other, '__str__')
+			return '({})'.format(await self.get_asyncattr(other, '__str__'))
+		return await self.get_asyncattr(other, '__str__')
 
 
 	async def _bool_oper_str(self, l, r) -> str:
@@ -79,7 +79,7 @@ class SeededOperator(SeededFunction):
 		elif req_arg_len == -1:
 			async def func_to_reduce(a, b):
 				return await self._bool_oper_str(a, b)
-			ret = await self.async_getattr(await func_to_reduce(self.args[0], self.args[1]), '__str__')
+			ret = await self.get_asyncattr(await func_to_reduce(self.args[0], self.args[1]), '__str__')
 			for a in reversed(self.args[2:]):
 				ret = await func_to_reduce(ret, a)
 			return ret

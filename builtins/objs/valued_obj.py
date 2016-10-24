@@ -114,12 +114,12 @@ class ValuedObj(Operable, Derivable):
 		value = ensure_future(self._avalue)
 		hasvalue = ensure_future(self._ahasvalue)
 		return self.generic_str('unvalued') if not await hasvalue else\
-			await self.async_getattr(await value, '__str__')
+			await self.get_asyncattr(await value, '__str__')
 
 	@override(Operable, Derivable)
 	async def __arepr__(self) -> str:
 		return '{}({})'.format(self.__class__.__name__,\
-				await self.async_getattr(await self._avalue))
+				await self.get_asyncattr(await self._avalue))
 
 
 

@@ -20,7 +20,7 @@ class SeededFunction(NamedValuedObj, Derivable):
 	@property
 	async def _args_str(self):
 		ret = []
-		for arg in (ensure_future(self.async_getattr(arg)) for arg in self.args):
+		for arg in (ensure_future(self.get_asyncattr(arg)) for arg in self.args):
 			ret.append(await arg)
 		return str(ret)
 
@@ -89,7 +89,7 @@ class SeededFunction(NamedValuedObj, Derivable):
 		baseobj = ensure_future(self.unseeded_base_object.__arepr__())
 		hasname = ensure_future(self._ahasname)
 		name = ensure_future(self._aname)
-		args = ', {}'.format(await self.async_getattr(args)) if self.args is not Undefined else ''
+		args = ', {}'.format(await self.get_asyncattr(args)) if self.args is not Undefined else ''
 		return '{}({}{}{})'.format(self.__class__.__name__, await baseobj, args, await name if await hasname else '')
 
 	@override(Derivable)

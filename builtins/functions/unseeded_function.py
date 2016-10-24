@@ -80,7 +80,7 @@ class UnseededFunction(NamedObj):
 
 	@override(NamedObj)
 	async def __astr__(self) -> str:
-		name = await self.async_getattr(await self._aname, '__str__')
+		name = await self.get_asyncattr(await self._aname, '__str__')
 		return await self._gen_unseeded_str(name, self.deriv_num, self.args_str, self.body_str)
 
 	@override(NamedObj)
@@ -89,8 +89,8 @@ class UnseededFunction(NamedObj):
 		name = ensure_future(self._aname)
 		return '{}({!r}, {}, {}, {!r}, {!r}, {!r})'.format(
 				self.__class__.__qualname__,
-				self.async_getattr(await func),
-				self.async_getattr(await name),
+				self.get_asyncattr(await func),
+				self.get_asyncattr(await name),
 				self.args_str,
 				self.body_str,
 				self.req_arg_len,

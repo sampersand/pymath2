@@ -13,5 +13,5 @@ class NamedValuedObj(NamedObj, ValuedObj):
 		name = ensure_future(self._aname)
 		value = ensure_future(self._avalue)
 		return '{}({}, {})'.format(self.__class__.__name__,
-				(await self.async_getattr(await name))(),
-				(await self.async_getattr(await value))())
+				(await self.get_asyncattr(await name))(),
+				(await self.get_asyncattr(await value))())
