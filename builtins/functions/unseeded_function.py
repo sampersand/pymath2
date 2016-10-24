@@ -1,8 +1,10 @@
 from typing import Callable
-from pymath2 import Undefined, override, final, complete, future
+from pymath2 import Undefined, override, final, complete, ensure_future, future, finish
 from pymath2.builtins.objs.named_obj import NamedObj
 from pymath2.builtins.objs.user_obj import UserObj
 from .seeded_function import SeededFunction
+from .seeded_operator import SeededOperator
+from pymath2.builtins.variable import Variable
 class UnseededFunction(NamedObj):
 	seeded_type = SeededFunction
 
@@ -14,16 +16,16 @@ class UnseededFunction(NamedObj):
 				 req_arg_len = Undefined,
 				 deriv_num = 0,
 				 **kwargs) -> None:
-		ainit = future(super().__ainit__(**kwargs))
-		afunc = future(self._afunc_setter(func))
+		ainit = ensure_future(super().__ainit__(**kwargs))
+		afunc = ensure_future(self._afunc_setter(func))
 
 		if isinstance(args_str, (list, tuple)):
 			args_str = ', '.join(str(x) for x in args_str)
 
-		aargs = future(self.__asetattr__('args_str', args_str))
-		abody = future(self.__asetattr__('body_str', body_str))
-		areql = future(self.__asetattr__('_req_arg_len', req_arg_len))
-		adnum = future(self.__asetattr__('deriv_num', deriv_num))
+		aargs = ensure_future(self.__asetattr__('args_str', args_str))
+		abody = ensure_future(self.__asetattr__('body_str', body_str))
+		areql = ensure_future(self.__asetattr__('_req_arg_len', req_arg_len))
+		adnum = ensure_future(self.__asetattr__('deriv_num', deriv_num))
 		await ainit; await afunc; await aargs
 		await abody; await areql; await adnum
 
@@ -59,7 +61,7 @@ class UnseededFunction(NamedObj):
 	@override(NamedObj)
 	async def __acall__(self, *args, **kwargs) -> seeded_type:
 		assert len(args) == self.req_arg_len or self.req_arg_len == -1, 'length mismatch between {} and {}'.format(len(args), self.req_arg_len)
-		fut_args = [future(self.scrub(arg)) for arg in args]
+		fut_args = [ensure_future(self.scrub(arg)) for arg in args]
 		args = []
 		for arg in fut_args:
 			args.append(await arg)
@@ -83,8 +85,8 @@ class UnseededFunction(NamedObj):
 
 	@override(NamedObj)
 	async def __arepr__(self) -> str:
-		func = future(self._afunc)
-		name = future(self._aname)
+		func = ensure_future(self._afunc)
+		name = ensure_future(self._aname)
 		return '{}({!r}, {}, {}, {!r}, {!r}, {!r})'.format(
 				self.__class__.__qualname__,
 				self.async_getattr(await func),
@@ -93,6 +95,11 @@ class UnseededFunction(NamedObj):
 				self.body_str,
 				self.req_arg_len,
 				self.deriv_num)
+
+class alambda():
+	def __init__(self, lambda_func):
+		args = lambda_func.__code__.co_argcount
+		self.lambda_func = lambda_func(*(var() for x in range(args)))
 
 @final
 class UserFunction(UserObj, UnseededFunction):
@@ -110,6 +117,56 @@ class UserFunction(UserObj, UnseededFunction):
 	'''
 	override(UserObj, name = '_parse_args_regex')
 
+	async def __ainit__(self, lambda_object, arg_count = Undefined, **kwargs):
+		arg_count = lambda_object.__code__.co_argcount if arg_count is Undefined else arg_count
+
+		# async with finish():
+		# 	vars_ = [future(Variable.__anew__(Variable)) for x in range(arg_count)]
+		vars_ = []
+		for x in range(arg_count):
+			vars_.append(await Variable.__anew__(Variable))
+		# vars_ = [x.result() for x in vars_]
+		import asyncio
+		old_event_loop = asyncio.get_event_loop()
+		asyncio.set_event_loop(asyncio.new_event_loop())
+
+		self.lambda_result = await self.scrub(lambda_object(*vars_))
+		asyncio.set_event_loop(old_event_loop)
+
+		await super().__ainit__(**kwargs)
+
+	@override(UnseededFunction)
+	@property
+	async def _afunc(self) -> Callable:
+		if isinstance(self.lambda_result, Variable):
+			print('isvar')
+			return lambda x: x
+		if type(self.lambda_result) == SeededOperator:
+			lr = await self.lambda_result.copy()
+			def foo(*args):
+				lr._new_result_replace(args)
+				assert lr is not None
+				return lr
+			return foo
+		if type(self.lambda_result) == SeededFunction:
+			# lr = await self.lambda_result.copy()
+			lrf = await self.lambda_result.unseeded_base_object._afunc
+			def foo(*args):
+				lr = lrf(*args)
+				lr._new_result_replace(args)
+				assert lr is not None
+				return lr
+			return foo
+		quit(type(self.lambda_result))
+		# lr = await self.lambda_result.copy()
+		# print(type(lr), type(self.lambda_result))
+		# def foo(*args):
+		# 	lr._new_result_replace(args)
+		# 	return lr
+		# return foo
+		# return self.lambda_result
+
+
 	@override(UserObj)
 	@staticmethod
 	def process_match(match):
@@ -120,7 +177,6 @@ class UserFunction(UserObj, UnseededFunction):
 		assert all(x in match for x in ('name', 'args_str', 'body_str', 'req_arg_len', 'deriv_num')), match
 
 		return match
-
 
 
 

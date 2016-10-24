@@ -43,31 +43,31 @@ fact = MathFunction(name = '!', req_arg_len = 1, func = lambda a: math.factorial
 gamma = MathFunction(name = 'gamma', req_arg_len = 1, func = lambda a: math.gamma(a))
 Γ = gamma
 
-# future: async lambda 
+# ensure_future: async lambda 
 def derive(du, a): return cos(a) * a.deriv(du) #await
 sin.deriv_w_args = derive
 
-# future: async lambda 
+# ensure_future: async lambda 
 def derive(du, a): return -sin(a) * a.deriv(du) #await
 cos.deriv_w_args = derive
 
-# future: async lambda 
+# ensure_future: async lambda 
 def derive(du, a): return sec(a) ** 2 * a.deriv(du) #await
 tan.deriv_w_args = derive
 
-# future: async lambda 
+# ensure_future: async lambda 
 def derive(du, a): return -csc(a) * cot(a) * a.deriv(du) #await
 csc.deriv_w_args = derive
 
-# future: async lambda 
+# ensure_future: async lambda 
 def derive(du, a): return sec(a) * tan(a) * a.deriv(du) #await
 sec.deriv_w_args = derive
 
-# future: async lambda 
+# ensure_future: async lambda 
 def derive(du, a): return -csc(a) ** 2 * a.deriv(du) #await
 cot.deriv_w_args = derive
 
-# future: async lambda 
+# ensure_future: async lambda 
 def derive(du, a): return a.deriv(du) / a #await
 ln.deriv_w_args = derive
 

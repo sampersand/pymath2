@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, override, final
+from pymath2 import Undefined, override, final, ensure_future
 from .objs.valued_obj import ValuedObj
 from .derivable import Derivable
 
@@ -12,8 +12,8 @@ class Constant(ValuedObj, Derivable):
 
 	@override(ValuedObj)
 	async def __arepr__(self) -> str:
-		value = future(self._avalue)
-		hasvalue = future(self._ahasvalue)
+		value = ensure_future(self._avalue)
+		hasvalue = ensure_future(self._ahasvalue)
 		return '{}({})'.format(self.__class__.__name__,
 							   (await self.async_getattr(await value))() if await hasvalue else '')
 

@@ -8,14 +8,14 @@ class MathList(NamedValuedObj, list):
 	_len_attrs = {} #would be like {1: ('x'), 2: ('x', 'y'), 3: ('i', 'j', 'k')}
 
 	@override(NamedValuedObj)
-	def __anew__(cls, *args, name = Undefined, **kwargs):
+	async def __anew__(cls, *args, name = Undefined, **kwargs):
 		return super().__anew__(cls, *args, **kwargs)
 
 	print_parens = ('(', ')')
 	@override(NamedValuedObj, list)
-	def __ainit__(self, *args, **kwargs):
+	async def __ainit__(self, *args, **kwargs):
 		super().__ainit__(**kwargs)
-		argsl = [future(self.scrub(arg)) for arg in args]
+		argsl = [ensure_future(self.scrub(arg)) for arg in args]
 		args = []
 		for arg in argl:
 			args.append(await arg)

@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, override, future
+from pymath2 import Undefined, override, future, finish, ensure_future, iscoroutine
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.operable import Operable
 from pymath2.builtins.objs.valued_obj import ValuedObj
@@ -12,17 +12,15 @@ class SeededFunction(NamedValuedObj, Derivable):
 		if __debug__:
 			from .unseeded_function import UnseededFunction
 			assert isinstance(unseeded_base_object, UnseededFunction), '{}, type {}'.format(unseeded_base_object, type(unseeded_base_object))
-		ainit = future(super().__ainit__(**kwargs))
-		abase = future(self.__asetattr__('unseeded_base_object', unseeded_base_object))
-		aargs = future(self.__asetattr__('args', args))
-		await ainit
-		await abase
-		await aargs
+		async with finish():
+			future(super().__ainit__(**kwargs))
+			future(self.__asetattr__('unseeded_base_object', unseeded_base_object))
+			future(self.__asetattr__('args', args))
 
 	@property
 	async def _args_str(self):
 		ret = []
-		for arg in (future(self.async_getattr(arg)) for arg in self.args):
+		for arg in (ensure_future(self.async_getattr(arg)) for arg in self.args):
 			ret.append(await arg)
 		return str(ret)
 
@@ -31,32 +29,39 @@ class SeededFunction(NamedValuedObj, Derivable):
 	async def _aname(self):
 		return self._name if self._name is not Undefined else await self.unseeded_base_object._aname
 
+	###
+	def get_vars(self):
+		ret = []
+		for arg in self.args:
+			if isinstance(arg, SeededFunction):
+				ret += arg.get_vars()
+			elif isinstance(arg, Variable):
+				ret.append(arg)
+		return ret
+	###
+
+
 	@override(NamedValuedObj)
 	@property
 	async def _avalue(self) -> Any:
 		func = await self.unseeded_base_object._afunc
 
-		from pymath2 import enable_complete, disable_complete, add_global_loop, remove_global_loop
 
-		add_global_loop()
 		# disable_complete()
 
-		if hasattr(func, '__acall__'):
-			assert 0, 'remove me'
-			res = await func.__acall__(*self.args)
 		# else:
-		print('argstr:', await self._args_str)
-		res = func.__call__(*self.args)
+		# print('argstr:', await self._args_str)
+		assert not hasattr(func, '__aiter__')
 
-		remove_global_loop()
+		res = func(*self.args)
 		# enable_complete()
-		#this is badddddd
-		try:
-			while True:
-				res = await res
-		except TypeError:
-			pass
+		# this is badddddd
+		while iscoroutine(res):
+			res = await res
+		assert not iscoroutine(res)
+
 		scrubbed = await self.scrub(res)
+		assert not iscoroutine(scrubbed)
 		return scrubbed
 
 	@override(NamedValuedObj)
@@ -66,25 +71,24 @@ class SeededFunction(NamedValuedObj, Derivable):
 
 	@override(NamedValuedObj)
 	async def __astr__(self) -> str:
-
 		if await self._ahasvalue:
-			return str(await self._avalue)
-		name = future(self._aname)
-		primestr = future(self.unseeded_base_object._aprime_str(self.unseeded_base_object.deriv_num))
+			return await (await self._avalue).__astr__()
+		name = ensure_future(self._aname)
+		primestr = ensure_future(self.unseeded_base_object._aprime_str(self.unseeded_base_object.deriv_num))
 		if self.args is Undefined:
-			args = future(self.args.__astr__())
+			args = ensure_future(self.args.__astr__())
 		else:
 			args = []
-			for arg in (future(x.__astr__()) for x in self.args):
+			for arg in (ensure_future(x.__astr__()) for x in self.args):
 				args.append(await arg)
 			args = ', '.join(args)
 		return '{}{}({})'.format(await name, await primestr, args)
 
 	@override(NamedValuedObj)
 	async def __arepr__(self) -> str:
-		baseobj = future(self.unseeded_base_object.__arepr__())
-		hasname = future(self._ahasname)
-		name = future(self._aname)
+		baseobj = ensure_future(self.unseeded_base_object.__arepr__())
+		hasname = ensure_future(self._ahasname)
+		name = ensure_future(self._aname)
 		args = ', {}'.format((await self.async_getattr(args, '__repr__'))()) if self.args is not Undefined else ''
 		return '{}({}{}{})'.format(self.__class__.__name__, await baseobj, args, await name if await hasname else '')
 
@@ -101,7 +105,7 @@ class SeededFunction(NamedValuedObj, Derivable):
 
 	@staticmethod
 	async def _gen_wrapped_func(val, du):
-		deriv = future(val._aderiv(du))
+		deriv = ensure_future(val._aderiv(du))
 		# print(deriv)
 		# b = deriv.unseeded_base_object.func
 		# print(b)
@@ -130,8 +134,8 @@ class SeededFunction(NamedValuedObj, Derivable):
 	async def _aderiv(self, du: Variable) -> 'UnseededFunction':
 		from .unseeded_function import UnseededFunction
 
-		req_arg_len = self.unseeded_base_object.req_arg_len #future
-		func = future(self._gen_wrapped_func(await self._avalue, du))
+		req_arg_len = self.unseeded_base_object.req_arg_len #ensure_future
+		func = ensure_future(self._gen_wrapped_func(await self._avalue, du))
 		func = await func
 		func_str = str(func)
 		uns_func =  UnseededFunction(
@@ -149,4 +153,41 @@ class SeededFunction(NamedValuedObj, Derivable):
 
 
 
+	async def copy(self):
+		args = []
+		for arg in self.args:
+			if hasattr(arg, 'copy'):
+				args.append(await arg.copy())
+			else:
+				args.append(arg)
+		return await type(self).__anew__(type(self),
+					 unseeded_base_object = self.unseeded_base_object,
+					 args = args)
 
+
+	def _new_result_replace(self, args):
+		args = self._map_args_to_my_args(args)
+
+		return self._new_result_replace_wrapped(args)
+	def _new_result_replace_wrapped(self, passedargs):
+		res = []
+		for myarg in self.args:
+			if isinstance(myarg, SeededFunction):
+				res.append(myarg._new_result_replace_wrapped(passedargs))
+				continue
+			found = False
+			for myarg1, passedarg in passedargs:
+				if myarg is myarg1:
+					found = True
+					res.append(passedarg)
+			if not found: #this can be replaced with for else
+				res.append(myarg)
+			assert not isinstance(found, Variable) or found, str(myarg)
+			
+			# assert myarg args, 'a'
+		res = tuple(reversed(res))
+		self.args = res
+
+	def _map_args_to_my_args(self, args):
+		a = list(zip(self.get_vars(), args))
+		return a

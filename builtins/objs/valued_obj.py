@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, override, final, complete, future
+from pymath2 import Undefined, override, final, complete, ensure_future
 from .math_obj import MathObj
 from pymath2.builtins.operable import Operable
 from pymath2.builtins.derivable import Derivable
@@ -7,24 +7,24 @@ class ValuedObj(Operable, Derivable):
 
 	@override(Operable, Derivable)
 	async def __ainit__(self, value: Any = Undefined, **kwargs) -> None:
-		supi = future(super().__ainit__(**kwargs))
-		val  = future(self._avalue_setter(value))
-		await supi
+		supi = await (super().__ainit__(**kwargs))
+		val  = ensure_future(self._avalue_setter(value))
+		# await supi
 		await val
 
 	@final
 	def value():
 		@final
 		def fget(self) -> (Any, Undefined):
-			assert False, "don't use non-async functions!"
+			# assert False, "don't use non-async functions!"
 			return complete(self._avalue)
 		@final
 		def fset(self, val: Any) -> None:
-			assert False, "don't use non-async functions!"
+			# assert False, "don't use non-async functions!"
 			return complete(self._avalue_setter(val))
 		@final
 		def fdel(self) -> None:
-			assert False, "don't use non-async functions!"
+			# assert False, "don't use non-async functions!"
 			return complete(self._avalue_deleter())
 		return locals()
 	value = property(**value())
@@ -101,8 +101,8 @@ class ValuedObj(Operable, Derivable):
 		other = self.scrub(other)
 		if not hasattr(other, 'value'):
 			return False
-		myv = future(self._avalue)
-		otv = future(other._avalue)
+		myv = ensure_future(self._avalue)
+		otv = ensure_future(other._avalue)
 		myv = await myv
 		otv = await otv
 		if myv == otv and myv is not Undefined:
@@ -111,8 +111,8 @@ class ValuedObj(Operable, Derivable):
 
 	@override(Operable, Derivable)
 	async def __astr__(self) -> str:
-		value = future(self._avalue)
-		hasvalue = future(self._ahasvalue)
+		value = ensure_future(self._avalue)
+		hasvalue = ensure_future(self._ahasvalue)
 		return self.generic_str('unvalued') if not await hasvalue else\
 			(await self.async_getattr(await value, '__str__'))()
 

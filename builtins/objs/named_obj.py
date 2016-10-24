@@ -1,13 +1,13 @@
 from typing import Any 
-from pymath2 import Undefined, override, final, future
+from pymath2 import Undefined, override, final, ensure_future
 from .math_obj import MathObj
 
 class NamedObj(MathObj):
 	@override(MathObj)
 	async def __ainit__(self, name: str = Undefined, **kwargs) -> None:
-		sini = future(super().__ainit__(**kwargs))
-		name = future(self._aname_setter(name))
-		await sini
+		sini = await (super().__ainit__(**kwargs))
+		name = ensure_future(self._aname_setter(name))
+		# await sini
 		await name
 
 	@final
@@ -45,8 +45,8 @@ class NamedObj(MathObj):
 
 	@override(MathObj)
 	async def __astr__(self) -> str:
-		hasname = future(self._ahasname)
-		name = future(self._aname)
+		hasname = ensure_future(self._ahasname)
+		name = ensure_future(self._aname)
 		return (await self.async_getattr(await name, '__str__'))()\
 				if await hasname else self.generic_str(prefix = 'unnamed')
 
@@ -60,8 +60,8 @@ class NamedObj(MathObj):
 		other = await self.scrub(other)
 		if not hasattr(other, '_aname'):
 			return False
-		mname = future(self._aname)
-		oname = future(other._aname)
+		mname = ensure_future(self._aname)
+		oname = ensure_future(other._aname)
 		mname = await mname
 		if mname == await oname and mname is not Undefined:
 			return True

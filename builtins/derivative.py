@@ -1,14 +1,14 @@
 import asyncio
 from typing import Any
-from pymath2 import Undefined, override, final, complete, future
+from pymath2 import Undefined, override, final, complete, ensure_future
 # from .functions.unseeded_function import 'UnseededFunction'
 from .objs.named_valued_obj import NamedValuedObj
 class Derivative(NamedValuedObj):
 	@override(NamedValuedObj)
 	async def __ainit__(self, value: NamedValuedObj, **kwargs) -> None:
 		assert 'name' not in kwargs
-		an = future(value._ahasattr('_aname'))
-		av = future(value._ahasattr('_avalue'))
+		an = ensure_future(value._ahasattr('_aname'))
+		av = ensure_future(value._ahasattr('_avalue'))
 		assert await an
 		assert await av
 
@@ -22,8 +22,8 @@ class Derivative(NamedValuedObj):
 		return self._complete_func(other)
 
 	async def __atruediv__(self, other):
-		sv = future(self._avalue)
-		ov = future(other._avalue)
+		sv = ensure_future(self._avalue)
+		ov = ensure_future(other._avalue)
 		await sv
 		await ov
 		await ov.__asetattr__('_old_value_before_deriv', await ov._avalue)

@@ -1,6 +1,28 @@
 from inspect import stack
 from typing import Any
-from pymath2 import Undefined, complete, final
+from pymath2 import Undefined, complete, final, iscoroutine
+class foo():
+	def __init__(self, a):
+		self._a = a
+	def __call__(self, there, *args, **kwargs):
+			# cb = self._a._maybe_complete_func(*args, **kwargs)
+			# quit('cb:'+str(cb))
+			# return callback(self._a._maybe_complete_func(*args, **kwargs))
+		# try:
+		c = self._a.__acall__(*args, **kwargs)
+		# c = complete(*args, **kwargs)
+		# except AssertionError:
+			# c = Undefined
+		# finally:
+		there.send(complete(c))
+
+		# quit('no')
+		# return complete(*args)
+the_thing_to_complete = None
+def bar(there):
+	global the_thing_to_complete
+	print('the_thing_to_complete in bar:', the_thing_to_complete)
+	there.send(complete(the_thing_to_complete))
 class MathObj():
 
 	@final
@@ -14,7 +36,7 @@ class MathObj():
 
 	@final
 	def _complete_func(self, *args, **kwargs):
-		return self._maybe_complete_func(*args, docomp = True, stack_pos = 2, *kwargs)
+		return self._maybe_complete_func(*args, docomp = True, stack_pos = 2, **kwargs)
 		# async_name = self._get_async_name(stack()[1][3])
 		# assert hasattr(self, async_name)
 		# ret = getattr(self, async_name)(*args, **kwargs)
@@ -22,15 +44,24 @@ class MathObj():
 		# return ret
 
 	@final
-	def _maybe_complete_func(self, *args, docomp = None, stack_pos = 1, **kwargs):
-		async_name = self._get_async_name(stack()[stack_pos][3])
+	def _maybe_complete_func(self, *args, docomp = None,
+					async_name = None, stack_pos = 1, callback = None, **kwargs):
+		async_name = async_name or self._get_async_name(stack()[stack_pos][3])
 		assert hasattr(self, async_name)
-		ret = getattr(self, async_name)(*args, **kwargs)
+		coro = getattr(self, async_name)(*args, **kwargs)
+		# docomp = True
 		if docomp == None or docomp:
-			from pymath2 import do_complete
-			if do_complete() or docomp:
-				ret = complete(ret)
-		return ret
+				# from multiprocessing import Pipe, Process
+				# here, there = Pipe()
+				# global the_thing_to_complete
+				# the_thing_to_complete = coro
+				# print('the_thing_to_complete in _maybe_complete_func:', the_thing_to_complete)
+				# t = Process(target = bar, args = (there, ))
+				# t.start()
+				# to_return = here.recv()
+				# t.join()
+				to_return = complete(coro)
+		return to_return
 
 
 	@final
@@ -39,6 +70,7 @@ class MathObj():
 
 	async def __anew__(cls, *args, **kwargs):
 		new = super().__new__(cls)
+		# print(cls)
 		await new.__ainit__(*args, **kwargs)
 		super(MathObj, new).__init__()
 		return new
@@ -78,6 +110,7 @@ class MathObj():
 
 	@staticmethod
 	async def scrub(arg: Any) -> 'MathObj':
+		assert not iscoroutine(arg)
 		if isinstance(arg, MathObj) or arg is Undefined:
 			return arg
 		elif isinstance(arg, (int, float, bool, complex)):
@@ -101,21 +134,32 @@ class MathObj():
 
 	@final
 	def __call__(self, *args, **kwargs):
-		ret = self._maybe_complete_func(*args, **kwargs)
-		print(ret)
+		# from multiprocessing import Pipe, Process
+		# import threading
+		# here, there = Pipe()
+		# pr = Process(target = foo(self), args = (there, *args), kwargs = kwargs)
+		# pr.start()
+		# ret = here.recv()
+		# pr.join()
+		# with multiprocessing.Pool() as p:
+		# 	# f = lambda: self._maybe_complete_func
+		# 	a = p.apply_async(foo(), (args, kwargs))
+		# 	ret = a.get(timeout = .01)
+		# ret = self._maybe_complete_func(*args, **kwargs)
 		# assert 0
-		return ret
+		return self._complete_func(*args, **kwargs)
+		# return ret
 	async def __acall__(self, *args, **kwargs): raise NotImplementedError
 
-	@final
-	def __getattr__(self, attr): return self._complete_func(attr)
-	async def __agetattr__(self, attr): return super().__getattr__(attr)
+	# @final
+	# def __getattr__(self, attr): return self._complete_func(attr)
+	# async def __agetattr__(self, attr): return super().__getattr__(attr)
 
-	@final
-	def __setattr__(self, name, val):
-		#argh i gotta fix this later
-		assert False, "don't use non-async functions!"
-		return complete(self.__asetattr__(name, val))
+	# @final
+	# def __setattr__(self, name, val):
+	# 	#argh i gotta fix this later
+	# 	assert False, "don't use non-async functions!"
+	# 	return complete(self.__asetattr__(name, val))
 	async def __asetattr__(self, name, val):
 		return super().__setattr__(name, val)
 
@@ -134,6 +178,27 @@ class MathObj():
 			return True
 		except AttributeError:
 			return False
+		
+	# def __hash__(self):
+	# 	ret = []
+	# 	for key, value in self.__dict__.items():
+	# 		if not hasattr(key, '__hash__'):
+	# 			key = 0
+	# 		if not hasattr(value, '__hash__'):
+
+	# 	return hash(sum(hash(key) + hash(value) for key, value in self.__dict__.items()))
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

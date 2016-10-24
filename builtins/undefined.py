@@ -63,6 +63,8 @@ class UndefinedClass():
 
 	async def deriv(self, du) -> 'self':
 		return self
+
+	def __hash__(self): return id(self)
 Undefined = UndefinedClass()
 
 

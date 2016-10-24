@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, override, future
+from pymath2 import Undefined, override, ensure_future
 from pymath2.builtins.objs.math_obj import MathObj
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
@@ -43,8 +43,8 @@ class SeededOperator(SeededFunction):
 	@override(SeededFunction)
 	async def __arepr__(self) -> str:
 		return '{}({}, {})'.format(self.__class__.__name__,
-			(await self.async_getattr(self.unseeded_base_object))(),
-			(await self.async_getattr(self.args))())
+			(await self.async_getattr(self.unseeded_base_object)),
+			(await self.async_getattr(self.args)))
 
 
 	async def _is_lower_precedence(self, other: SeededFunction) -> bool:
@@ -60,15 +60,15 @@ class SeededOperator(SeededFunction):
 
 	async def _bool_oper_str(self, l, r) -> str:
 		# print('Dummy Method: _bool_oper_str')
-		l = future(self._possibly_surround_in_parens(l))
-		r = future(self._possibly_surround_in_parens(r))
-		n = future(self._aname)
+		l = ensure_future(self._possibly_surround_in_parens(l))
+		r = ensure_future(self._possibly_surround_in_parens(r))
+		n = ensure_future(self._aname)
 		return '{} {} {}'.format(await l, await n, await r)
 
 	@override(SeededFunction)
 	async def __astr__(self) -> str:
 		if await self._ahasvalue:
-			return str(await self._avalue)
+			return await (await self._avalue).__astr__()
 		req_arg_len = self.unseeded_base_object.req_arg_len
 		if req_arg_len == 1:
 			return '{}{}'.format(self._aname, self._possibly_surround_in_parens(self.args[0]))
@@ -90,10 +90,16 @@ class SeededOperator(SeededFunction):
 		return await self.unseeded_base_object.deriv_w_args(du, *self.args) #await
 
 
-
-
-
-
+# ###
+# 	def get_vars(self):
+# 		ret = []
+# 		for arg in self.args:
+# 			if isinstance(arg, SeededFunction):
+# 				ret += arg.get_vars()
+# 			else:
+# 				ret.append(arg)
+# 		return ret
+# 	###
 
 
 

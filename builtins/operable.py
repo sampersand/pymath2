@@ -1,12 +1,12 @@
 from inspect import stack
 
 from typing import Any
-from pymath2 import Undefined, complete, final, future
+from pymath2 import Undefined, complete, final, ensure_future
 from .objs.math_obj import MathObj
 
 class Operable(MathObj):
 	async def __ainit__(self, *args, **kwargs):
-		ainit = future(super().__ainit__(*args, **kwargs))
+		ainit = ensure_future(super().__ainit__(*args, **kwargs))
 		await ainit
 	async def _get_oper(self, other: Any = Undefined) -> 'SeededOperator':
 		from pymath2.builtins.functions.operator import opers

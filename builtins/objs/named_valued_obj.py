@@ -10,8 +10,8 @@ class NamedValuedObj(NamedObj, ValuedObj):
 
 	@override(NamedObj, ValuedObj)
 	async def __arepr__(self) -> str:
-		name = future(self._aname)
-		value = future(self._avalue)
+		name = ensure_future(self._aname)
+		value = ensure_future(self._avalue)
 		return '{}({}, {})'.format(self.__class__.__name__,
 				(await self.async_getattr(await name))(),
 				(await self.async_getattr(await value))())
