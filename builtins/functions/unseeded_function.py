@@ -5,6 +5,8 @@ from pymath2.builtins.objs.user_obj import UserObj
 from .seeded_function import SeededFunction
 from .seeded_operator import SeededOperator
 from pymath2.builtins.variable import Variable
+import asyncio
+
 class UnseededFunction(NamedObj):
 	seeded_type = SeededFunction
 
@@ -121,10 +123,12 @@ class UserFunction(UserObj, UnseededFunction):
 		for x in range(arg_count):
 			vars_.append(await Variable.__anew__(Variable))
 		# vars_ = [x.result() for x in vars_]
-		import asyncio
+		
 		old_event_loop = asyncio.get_event_loop()
 		asyncio.set_event_loop(asyncio.new_event_loop())
 
+		if not callable(lambda_object):
+			raise ValueError('lambda_object needs to be callable!')
 		self.lambda_result = await self.scrub(lambda_object(*vars_))
 		asyncio.set_event_loop(old_event_loop)
 
@@ -135,7 +139,8 @@ class UserFunction(UserObj, UnseededFunction):
 	@override(UnseededFunction)
 	@property
 	async def _afunc(self) -> Callable:
-		if isinstance(self.lambda_result, Variable):
+		quit()
+		if isinstance(self.lambda_result, (Variable, Constant)):
 			print('isvar')
 			return lambda x: x
 		if type(self.lambda_result) == SeededOperator:
