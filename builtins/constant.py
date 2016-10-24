@@ -15,7 +15,7 @@ class Constant(ValuedObj, Derivable):
 		value = ensure_future(self._avalue)
 		hasvalue = ensure_future(self._ahasvalue)
 		return '{}({})'.format(self.__class__.__name__,
-							   (await self.async_getattr(await value))() if await hasvalue else '')
+							   await self.async_getattr(await value) if await hasvalue else '')
 
 @final
 class UserConstant(Constant):

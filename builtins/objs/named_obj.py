@@ -47,12 +47,12 @@ class NamedObj(MathObj):
 	async def __astr__(self) -> str:
 		hasname = ensure_future(self._ahasname)
 		name = ensure_future(self._aname)
-		return (await self.async_getattr(await name, '__str__'))()\
+		return await self.async_getattr(await name, '__str__')\
 				if await hasname else self.generic_str(prefix = 'unnamed')
 
 	@override(MathObj)
 	async def __arepr__(self) -> str:
-		name = (await self.async_getattr(await self._aname))()
+		name = await self.async_getattr(await self._aname)
 		return '{}({})'.format(self.__class__.__name__, name)
 
 	@override(MathObj)

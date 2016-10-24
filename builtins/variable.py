@@ -25,7 +25,7 @@ class UserVariable(Variable):
 			value = future(self._avalue)
 			hasvalue = future(self._ahasvalue)
 			prname = future(self.async_getattr(await name))
-			prvalue = 'value=' + (await self.async_getattr(await value))() if await hasvalue else Undefined
+			prvalue = 'value=' + await self.async_getattr(await value) if await hasvalue else Undefined
 			return '{}({})'.format(self.__class__.__name__, 
-				', '.join(x for x in ((await prname)(), prvalue) if x is not Undefined))
+				', '.join(x for x in ('myname', prvalue) if x is not Undefined))
 

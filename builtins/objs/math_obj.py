@@ -50,6 +50,7 @@ class MathObj():
 		assert hasattr(self, async_name)
 		coro = getattr(self, async_name)(*args, **kwargs)
 		# docomp = True
+		docomp = True
 		if docomp == None or docomp:
 				# from multiprocessing import Pipe, Process
 				# here, there = Pipe()
@@ -93,8 +94,14 @@ class MathObj():
 	async def async_getattr(obj, attr: str = '__repr__'):
 		async_name = MathObj._get_async_name(attr)
 		if async_name != None and hasattr(obj, async_name):
-			return await getattr(obj, async_name)()
-		return getattr(obj, attr)
+			attr = await getattr(obj, async_name)()
+		else:
+			attr = getattr(obj, attr)
+		if hasattr(attr, '__call__'):
+			return attr()
+		return attr
+		quit('dont go here')
+		return attr
 
 	@classmethod
 	def generic_str(cls: type, prefix: str) -> str:
@@ -172,10 +179,12 @@ class MathObj():
 	async def _ahasattr(self, attr_or_obj, attr = None):
 		try: 
 			if attr == None:
-				await getattr(self, attr_or_obj)
+				geta = getattr(self, attr_or_obj)
 			else:
-				await getattr(attr_or_obj, attr)
-			return True
+				geta = getattr(attr_or_obj, attr)
+			if iscoroutine(geta):
+				geta = await geta 
+			return geta
 		except AttributeError:
 			return False
 		

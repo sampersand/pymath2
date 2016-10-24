@@ -120,6 +120,7 @@ class AddOperator(MultiArgOperator):
 
 	@staticmethod
 	async def func_for_two_args(l, r):
+		assert r is not None
 		lv = ensure_future(l._avalue)
 		rv = ensure_future(r._avalue)
 		return await lv + await rv

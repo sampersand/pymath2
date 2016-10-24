@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, override, ensure_future
+from pymath2 import Undefined, override, finish, future
 from pymath2.builtins.objs.math_obj import MathObj
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
@@ -17,11 +17,11 @@ class SeededOperator(SeededFunction):
 				else:
 					args_to_pass.append(arg)
 			if do_make_new:
-				args = args_to_pass
+				args = reversed(args_to_pass)
+				args = list(args)
 				# print(args_to_pass)
 				# return cls(unseeded_base_object, args, **kwargs)
 				return cls(unseeded_base_object= unseeded_base_object, args = args_to_pass, **kwargs)
-
 	async def __anew__(cls, unseeded_base_object: 'Operator', args: tuple, **kwargs) -> 'SeededOperator':
 		collapsed = cls._collapse_args(unseeded_base_object, args, kwargs)
 		if collapsed != None:
@@ -54,19 +54,21 @@ class SeededOperator(SeededFunction):
 
 	async def _possibly_surround_in_parens(self, other: MathObj) -> str:
 		if await self._is_lower_precedence(other):
-			return '({})'.format(await other.__astr__())
-		return await other.__astr__()
+			return '({})'.format(await self.async_getattr(other, '__str__'))
+		return await self.async_getattr(other, '__str__')
 
 
 	async def _bool_oper_str(self, l, r) -> str:
-		# print('Dummy Method: _bool_oper_str')
-		l = ensure_future(self._possibly_surround_in_parens(l))
-		r = ensure_future(self._possibly_surround_in_parens(r))
-		n = ensure_future(self._aname)
-		return '{} {} {}'.format(await l, await n, await r)
+		# print('Dummy Method: _bool_oper_str') #still is kinda
+		async with finish():
+			l = future(self._possibly_surround_in_parens(l))
+			r = future(self._possibly_surround_in_parens(r))
+			n = future(self._aname)
+		return '{} {} {}'.format(l.result(), n.result(), r.result())
 
 	@override(SeededFunction)
 	async def __astr__(self) -> str:
+
 		if await self._ahasvalue:
 			return await (await self._avalue).__astr__()
 		req_arg_len = self.unseeded_base_object.req_arg_len
@@ -77,9 +79,9 @@ class SeededOperator(SeededFunction):
 		elif req_arg_len == -1:
 			async def func_to_reduce(a, b):
 				return await self._bool_oper_str(a, b)
-			ret = (await self.async_getattr(await func_to_reduce(self.args[0], self.args[1]), '__str__'))()
-			for a in self.args[2:]:
-				ret = func_to_reduce(ret, a)
+			ret = await self.async_getattr(await func_to_reduce(self.args[0], self.args[1]), '__str__')
+			for a in reversed(self.args[2:]):
+				ret = await func_to_reduce(ret, a)
 			return ret
 		else:
 			raise Exception('How does an operator have {} required arguments?'.

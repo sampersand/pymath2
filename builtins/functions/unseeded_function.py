@@ -80,7 +80,7 @@ class UnseededFunction(NamedObj):
 
 	@override(NamedObj)
 	async def __astr__(self) -> str:
-		name = (await self.async_getattr(await self._aname, '__str__'))()
+		name = await self.async_getattr(await self._aname, '__str__')
 		return await self._gen_unseeded_str(name, self.deriv_num, self.args_str, self.body_str)
 
 	@override(NamedObj)
@@ -95,11 +95,6 @@ class UnseededFunction(NamedObj):
 				self.body_str,
 				self.req_arg_len,
 				self.deriv_num)
-
-class alambda():
-	def __init__(self, lambda_func):
-		args = lambda_func.__code__.co_argcount
-		self.lambda_func = lambda_func(*(var() for x in range(args)))
 
 @final
 class UserFunction(UserObj, UnseededFunction):
@@ -135,6 +130,8 @@ class UserFunction(UserObj, UnseededFunction):
 
 		await super().__ainit__(**kwargs)
 
+	# def __call__(self, *args, **kwargs):
+	# 	quit()
 	@override(UnseededFunction)
 	@property
 	async def _afunc(self) -> Callable:
@@ -157,7 +154,7 @@ class UserFunction(UserObj, UnseededFunction):
 				assert lr is not None
 				return lr
 			return foo
-		quit(type(self.lambda_result))
+		quit('nope dont go there')
 		# lr = await self.lambda_result.copy()
 		# print(type(lr), type(self.lambda_result))
 		# def foo(*args):

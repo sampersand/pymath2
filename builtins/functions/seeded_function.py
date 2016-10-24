@@ -89,7 +89,7 @@ class SeededFunction(NamedValuedObj, Derivable):
 		baseobj = ensure_future(self.unseeded_base_object.__arepr__())
 		hasname = ensure_future(self._ahasname)
 		name = ensure_future(self._aname)
-		args = ', {}'.format((await self.async_getattr(args, '__repr__'))()) if self.args is not Undefined else ''
+		args = ', {}'.format(await self.async_getattr(args)) if self.args is not Undefined else ''
 		return '{}({}{}{})'.format(self.__class__.__name__, await baseobj, args, await name if await hasname else '')
 
 	@override(Derivable)
@@ -167,25 +167,23 @@ class SeededFunction(NamedValuedObj, Derivable):
 
 	def _new_result_replace(self, args):
 		args = self._map_args_to_my_args(args)
-
-		return self._new_result_replace_wrapped(args)
+		self._new_result_replace_wrapped(args)
 	def _new_result_replace_wrapped(self, passedargs):
 		res = []
 		for myarg in self.args:
 			if isinstance(myarg, SeededFunction):
-				res.append(myarg._new_result_replace_wrapped(passedargs))
+				myarg._new_result_replace_wrapped(passedargs)
+				res.append(myarg)
 				continue
-			found = False
 			for myarg1, passedarg in passedargs:
 				if myarg is myarg1:
-					found = True
 					res.append(passedarg)
-			if not found: #this can be replaced with for else
+					break
+			else:
 				res.append(myarg)
-			assert not isinstance(found, Variable) or found, str(myarg)
-			
+				assert not isinstance(myarg, Variable) and myarg is not None, str(myarg)
 			# assert myarg args, 'a'
-		res = tuple(reversed(res))
+		assert all(x is not None for x in res), res
 		self.args = res
 
 	def _map_args_to_my_args(self, args):

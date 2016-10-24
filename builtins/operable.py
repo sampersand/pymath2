@@ -12,7 +12,7 @@ class Operable(MathObj):
 		from pymath2.builtins.functions.operator import opers
 		if other is Undefined:
 			return await opers[stack()[1][3]].__acall__(self)
-		return await opers[stack()[1][3]].__acall__(self, other)
+		return await opers[stack()[1][3]].__acall__(self, await self.scrub(other))
 
 
 	# def _maybe_complete_func(self, *args, **kwargs):
