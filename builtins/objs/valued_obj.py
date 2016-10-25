@@ -120,22 +120,22 @@ class ValuedObj(Operable, Derivable):
 		other = self.scrub(other)
 		if not hasattr(other, 'value'):
 			return False
-		with finish():
-			myv = future(self._avalue)
-			otv = future(other._avalue)
-		if myv == otv and myv.result() is not Undefined:
+		async with FinishSet() as f:
+			myv = f.future(self._avalue)
+			otv = f.future(other._avalue)
+		if myv.result() == otv.result() and myv.result() is not Undefined:
 			return True
 		return super().__eq__(other)
 
 	@override(Operable, Derivable)
 	async def __astr__(self) -> str:
 		assert inloop()
-		async with finish(): 
-			value = future(self._avalue)
-			hasvalue = future(self._ahasvalue)
-		if not hasvalue:
+		async with FinishSet() as f: 
+			value = f.future(self._avalue)
+			hasvalue = f.future(self._ahasvalue)
+		if not hasvalue.result():
 			return self.generic_str('unvalued')
-		str_attr = self.get_asyncattr(await value, '__str__')
+		str_attr = await self.get_asyncattr(value.result(), '__str__')
 		assert not isinstance(str_attr, MathObj)
 		return str(str_attr)
 

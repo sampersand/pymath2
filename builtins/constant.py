@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 from pymath2 import override, final
 from .number import Number
 from .derivable import Derivable
-
+from .objs.user_obj import UserObj
 if __debug__: #only need these if using assertions
 	from .objs.math_obj import MathObj
 	from pymath2 import inloop
@@ -32,8 +32,15 @@ class Constant(Number):
 		return '{}({})'.format(type(self).__qualname__, value_str)
 
 @final
-class UserConstant(Constant):
+class UserConstant(UserObj, Constant):
+
 	@override(Constant)
 	async def __ainit__(self, value: Constant._valid_types) -> None:
 		assert inloop()
 		await super().__ainit__(value = value)
+
+
+
+
+
+

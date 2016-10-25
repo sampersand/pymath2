@@ -1,3 +1,4 @@
+import logging
 from pymath2 import Undefined, override
 from .math_obj import MathObj
 from inspect import stack
@@ -8,10 +9,11 @@ class UserObj(MathObj):
 
 	@override(MathObj)
 	async def __ainit__(self, *args, override = False, **kwargs) -> None:
-		assert self._parse_args_regex is not Undefined, '_parse_args_regex cannot be undefined'
-
-		parsed_args = self.parse_arg(override)
-		kwargs.update(parsed_args) 
+		if self._parse_args_regex is not Undefined:
+			parsed_args = self.parse_arg(override)
+			kwargs.update(parsed_args)
+		else:
+			logging.debug('_parse_args_regex is not defined for {}'.format(type(self).__qualname__))
 		await super().__ainit__(*args, **kwargs)
 
 	def parse_arg(self, override) -> dict:

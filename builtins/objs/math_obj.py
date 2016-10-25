@@ -1,28 +1,10 @@
+import logging
 from inspect import stack
 from typing import Any
 from pymath2 import Undefined, complete, final, iscoroutine
 if __debug__:
 	from pymath2 import inloop
 class MathObj():
-
-	# @final
-	# @classmethod
-	# def _complete_class_func(cls, *args, **kwargs):
-	# 	async_name = cls._get_async_name(stack()[1][3])
-	# 	assert hasattr(cls, async_name)
-	# 	ret = getattr(cls, async_name)(cls, *args, **kwargs)
-	# 	ret = complete(ret)
-	# 	return ret
-
-	# @final
-	# def _complete_func(self, *args, async_name = None, **kwargs):
-	# 	async_name = async_name or self._get_async_name(stack()[stack_pos][3])
-	# 	assert hasattr(self, async_name)
-	# 	coro = getattr(self, async_name)(*args, **kwargs)
-	# 	# docomp = True
-	# 	to_return = complete(coro)
-	# 	return to_return
-
 
 	@final
 	def __new__(cls, *args, **kwargs):
@@ -31,12 +13,17 @@ class MathObj():
 		return complete(cls.__anew__(cls, *args, **kwargs))
 
 	async def __anew__(cls, *args, **kwargs):
-		# check this
 		assert inloop()
 		assert isinstance(cls, type)
+		if __debug__:
+			from .user_obj import UserObj
+			assert not args or issubclass(cls, UserObj), "Should only be using varargs for UserObjs"
 		new = super().__new__(cls)
+
+		assert isinstance(new, MathObj) # not cls incase things like SeededOperator want to modify results
+
 		await new.__ainit__(*args, **kwargs)
-		super(MathObj, new).__init__()
+		# super(MathObj, new).__init__() # Dont think this is needed - it's covered in __init__
 		return new
 
 	def __init__(self, *args, **kwargs):
@@ -45,6 +32,9 @@ class MathObj():
 
 	async def __ainit__(self, *args, **kwargs):
 		assert inloop()
+		if __debug__:
+			from .user_obj import UserObj
+			assert not args or isinstance(self, UserObj), "Should only be using varargs for UserObjs"
 		super().__init__(*args, **kwargs)
 
 	@staticmethod
@@ -53,6 +43,7 @@ class MathObj():
 			return '{}a{}'.format(name[:2], name[2:])
 		if name[:1] == '_':
 			return '{}a{}'.format(name[:1], name[1:])
+		logging.debug('No async name found for ' + name)
 		return None
 
 	@staticmethod
