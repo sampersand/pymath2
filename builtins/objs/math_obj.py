@@ -1,55 +1,50 @@
 from inspect import stack
 from typing import Any
 from pymath2 import Undefined, complete, final, iscoroutine
-
+if __debug__:
+	from pymath2 import inloop
 class MathObj():
 
-	@final
-	@classmethod
-	def _complete_class_func(cls, *args, **kwargs):
-		async_name = cls._get_async_name(stack()[1][3])
-		assert hasattr(cls, async_name)
-		ret = getattr(cls, async_name)(cls, *args, **kwargs)
-		ret = complete(ret)
-		return ret
+	# @final
+	# @classmethod
+	# def _complete_class_func(cls, *args, **kwargs):
+	# 	async_name = cls._get_async_name(stack()[1][3])
+	# 	assert hasattr(cls, async_name)
+	# 	ret = getattr(cls, async_name)(cls, *args, **kwargs)
+	# 	ret = complete(ret)
+	# 	return ret
 
-	@final
-	def _complete_func(self, *args, **kwargs):
-		return self._maybe_complete_func(*args, docomp = True, stack_pos = 2, **kwargs)
-		async_name = async_name or self._get_async_name(stack()[stack_pos][3])
-		assert hasattr(self, async_name)
-		coro = getattr(self, async_name)(*args, **kwargs)
-		# docomp = True
-		docomp = True
-		if docomp == None or docomp:
-				# from multiprocessing import Pipe, Process
-				# here, there = Pipe()
-				# global the_thing_to_complete
-				# the_thing_to_complete = coro
-				# print('the_thing_to_complete in _maybe_complete_func:', the_thing_to_complete)
-				# t = Process(target = bar, args = (there, ))
-				# t.start()
-				# to_return = here.recv()
-				# t.join()
-				to_return = complete(coro)
-		return to_return
+	# @final
+	# def _complete_func(self, *args, async_name = None, **kwargs):
+	# 	async_name = async_name or self._get_async_name(stack()[stack_pos][3])
+	# 	assert hasattr(self, async_name)
+	# 	coro = getattr(self, async_name)(*args, **kwargs)
+	# 	# docomp = True
+	# 	to_return = complete(coro)
+	# 	return to_return
 
 
 	@final
 	def __new__(cls, *args, **kwargs):
-		return cls._complete_class_func(*args, **kwargs)
+		assert not inloop()
+		assert isinstance(cls, type)
+		return complete(cls.__anew__(cls, *args, **kwargs))
 
 	async def __anew__(cls, *args, **kwargs):
+		# check this
+		assert inloop()
+		assert isinstance(cls, type)
 		new = super().__new__(cls)
-		# print(cls)
 		await new.__ainit__(*args, **kwargs)
 		super(MathObj, new).__init__()
 		return new
 
 	def __init__(self, *args, **kwargs):
-		return self._complete_func(*args, **kwargs)
+		assert not inloop()
+		return complete(self.__ainit__(*args, **kwargs))
 
 	async def __ainit__(self, *args, **kwargs):
+		assert inloop()
 		super().__init__(*args, **kwargs)
 
 	@staticmethod
@@ -62,6 +57,7 @@ class MathObj():
 
 	@staticmethod
 	async def get_asyncattr(obj, attr: str = '__repr__', call = True):
+		assert inloop()
 		async_name = MathObj._get_async_name(attr)
 		if async_name != None and hasattr(obj, async_name):
 			if not call:
@@ -77,6 +73,7 @@ class MathObj():
 
 	@staticmethod
 	async def has_asyncattr(obj, attr):
+		assert inloop()
 		async_name = MathObj._get_async_name(attr)
 		return async_name and hasattr(obj, async_name)
 
@@ -85,12 +82,20 @@ class MathObj():
 		return '{{{} {}}}'.format(prefix, cls.__qualname__)
 
 	@final
-	def __str__(self) -> str: return self._complete_func()
-	async def __astr__(self) -> str: return self.generic_str('default')
+	def __str__(self) -> str:
+		assert not inloop()
+		return complete(self.__astr__())
+	async def __astr__(self) -> str:
+		assert inloop()
+		return self.generic_str('default')
 
 	@final
-	def __repr__(self) -> str: return self._complete_func()
-	async def __arepr__(self) -> str: return '{}()'.format(self.__class__.__name__)
+	def __repr__(self) -> str:
+		assert not inloop()
+		return complete(self.__arepr__())
+	async def __arepr__(self) -> str:
+		assert inloop()
+		return '{}()'.format(self.__class__.__name__)
 
 	@staticmethod
 	async def scrub(arg: Any) -> 'MathObj':
@@ -109,31 +114,28 @@ class MathObj():
 			raise TypeError(type(arg))
 
 	@final
-	def __ne__(self, other: Any) -> bool: return self._complete_func(other)
-	async def __ane__(self, other: Any) -> bool: return not await self.__aeq__(other)
+	def __ne__(self, other: Any) -> bool:
+		assert not inloop()
+		return complete(self.__ane__(other))
+	async def __ane__(self, other: Any) -> bool:
+		assert inloop()
+		return not await self.__aeq__(other)
 
 	@final
-	def __eq__(self, other: Any) -> bool: return self._complete_func(other)
-	async def __aeq__(self, other: Any) -> bool: return super().__eq__(other)
+	def __eq__(self, other: Any) -> bool:
+		assert not inloop()
+		return complete(self.__aeq__(other))
+	async def __aeq__(self, other: Any) -> bool:
+		assert inloop()
+		return super().__eq__(other)
 
 	@final
 	def __call__(self, *args, **kwargs):
-		# from multiprocessing import Pipe, Process
-		# import threading
-		# here, there = Pipe()
-		# pr = Process(target = foo(self), args = (there, *args), kwargs = kwargs)
-		# pr.start()
-		# ret = here.recv()
-		# pr.join()
-		# with multiprocessing.Pool() as p:
-		# 	# f = lambda: self._maybe_complete_func
-		# 	a = p.apply_async(foo(), (args, kwargs))
-		# 	ret = a.get(timeout = .01)
-		# ret = self._maybe_complete_func(*args, **kwargs)
-		# assert 0
-		return self._complete_func(*args, **kwargs)
-		# return ret
-	async def __acall__(self, *args, **kwargs): raise NotImplementedError
+		assert not inloop()
+		return complete(self.__acall__(*args, **kwargs))
+	async def __acall__(self, *args, **kwargs):
+		assert inloop()
+		raise NotImplementedError
 
 	# @final
 	# def __getattr__(self, attr): return self._complete_func(attr)
@@ -145,15 +147,20 @@ class MathObj():
 	# 	assert False, "don't use non-async functions!"
 	# 	return complete(self.__asetattr__(name, val))
 	async def __asetattr__(self, name, val):
+		assert inloop()
 		return super().__setattr__(name, val)
 
 	@final
-	def __delattr__(self, name): return self._complete_func(name)
+	def __delattr__(self, name):
+		assert not inloop()
+		return complete(self.__adelattr__(name))
 	async def __adelattr__(self, name):
+		assert inloop()
 		return super().__delattr__(name, val)
 
 
 	async def _ahasattr(self, attr_or_obj, attr = None):
+		assert inloop()
 		try: 
 			if attr == None:
 				geta = getattr(self, attr_or_obj)

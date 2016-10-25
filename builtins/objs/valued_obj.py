@@ -1,20 +1,24 @@
 from typing import Any
-from pymath2 import Undefined, override, final, complete
+from pymath2 import Undefined, override, final, complete, FinishSet
 from .math_obj import MathObj
 from pymath2.builtins.operable import Operable
 from pymath2.builtins.derivable import Derivable
 if __debug__:
 	from pymath2 import inloop
 class ValuedObj(Operable, Derivable):
-	_valid_types = {Undefined}
+	_valid_types = {type(Undefined)}
 	@override(Operable, Derivable)
 	async def __ainit__(self, value: Any = Undefined, **kwargs) -> None:
 		assert inloop()
 		if type(value) not in self._valid_types:
-			raise TypeError('Cannot have type {} as a value for {}'.format(type(value), type(self)))
+			raise TypeError('Cannot have type {} as a value for {}. Valid Types: {}'.format(
+																		   type(value).__qualname__,
+																		   type(self).__qualname__,
+																		   self._valid_types, ))
 
-		future(super().__ainit__(**kwargs))
-		future(self._avalue_setter(value))
+		async with FinishSet() as f:
+			f.future(super().__ainit__(**kwargs))
+			f.future(self._avalue_setter(value))
 
 	@final
 	def value():

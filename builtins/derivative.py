@@ -23,7 +23,7 @@ class Derivative(NamedValuedObj):
 		assert not inloop()
 		if not isinstance(other, Derivative):
 			return super().__truediv__(self, other)
-		return self._complete_func(other)
+		return complete(self.__atruediv__(other))
 
 	async def __atruediv__(self, other):
 		assert inloop()
