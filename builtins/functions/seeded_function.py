@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, override, future, finish, ensure_future, iscoroutine
+from pymath2 import Undefined, override, finish, iscoroutine, warnloop, inloop, debugf
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.operable import Operable
 from pymath2.builtins.objs.valued_obj import ValuedObj
@@ -9,33 +9,49 @@ class SeededFunction(NamedValuedObj, Derivable):
 
 	@override(NamedValuedObj)
 	async def __ainit__(self, unseeded_base_object: 'UnseededFunction', args: tuple = Undefined, **kwargs) -> None:
+		warnloop()
+		assert inloop()
 		if __debug__:
 			from .unseeded_function import UnseededFunction
 			assert isinstance(unseeded_base_object, UnseededFunction), '{}, type {}'.format(unseeded_base_object, type(unseeded_base_object))
-		async with finish():
-			future(super().__ainit__(**kwargs))
-			future(self.__asetattr__('unseeded_base_object', unseeded_base_object))
-			future(self.__asetattr__('args', args))
-
+		async with finish() as f:
+			f.future(super().__ainit__(**kwargs))
+			f.future(self.__asetattr__('unseeded_base_object', unseeded_base_object))
+			f.future(self.__asetattr__('args', args))
+		assert hasattr(self, 'unseeded_base_object')
+		assert hasattr(self, 'args')
 	@property
 	async def _args_str(self):
+		warnloop()
+		assert inloop()
 		ret = []
-		for arg in (ensure_future(self.get_asyncattr(arg)) for arg in self.args):
-			ret.append(await arg)
-		return str(ret)
+		async with finish() as f:
+			for x in (f.future(arg) for arg in self.args):
+				ret.append(arg)
+		return str([x.result() for x in ret])
 
 	@override(NamedValuedObj)
 	@property
 	async def _aname(self):
-		return self._name if self._name is not Undefined else await self.unseeded_base_object._aname
+		warnloop()
+		assert inloop()
+		if self._name is Undefined:
+			return await self.unseeded_base_object._aname
+		else:
+			assert self._name is not Undefined
+			return self.name
 
 	###
 	def get_vars(self):
+		# warnloop(False) #idk if this is necessary
+		# assert not inloop() #idk if this is necessary
 		ret = []
 		for arg in self.args:
 			if isinstance(arg, SeededFunction):
+				debugf('Append get_vars from SeededFunction at 0x{:0x}', id(arg)) #cause cant call str
 				ret += arg.get_vars()
 			elif isinstance(arg, Variable):
+				debugf('Appending get_vars from Variable at 0x{:0x}', id(arg))
 				ret.append(arg)
 		return ret
 	###

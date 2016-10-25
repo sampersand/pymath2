@@ -1,10 +1,11 @@
 from typing import Callable
-from pymath2 import Undefined, override, final, complete, ensure_future, future, finish
+from pymath2 import Undefined, override, final, complete, ensure_future, finish
 from pymath2.builtins.objs.named_obj import NamedObj
 from pymath2.builtins.objs.user_obj import UserObj
 from .seeded_function import SeededFunction
 from .seeded_operator import SeededOperator
 from pymath2.builtins.variable import Variable
+from pymath2.builtins.constant import Constant
 import asyncio
 
 class UnseededFunction(NamedObj):
@@ -139,7 +140,6 @@ class UserFunction(UserObj, UnseededFunction):
 	@override(UnseededFunction)
 	@property
 	async def _afunc(self) -> Callable:
-		quit()
 		if isinstance(self.lambda_result, (Variable, Constant)):
 			print('isvar')
 			return lambda x: x

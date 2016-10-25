@@ -1,20 +1,27 @@
 from typing import Any
-from pymath2 import Undefined, override, final, future, finish
+from pymath2 import warnloop, Undefined, override, final, finish
 from .objs.named_valued_obj import NamedValuedObj
+from .objs.user_obj import UserObj
 from .derivable import Derivable
 from .number import Number
+from pymath2 import inloop
+
 class Variable(Number, NamedValuedObj):
 
 	@override(Derivable)
 	async def _aisconst(self, du: 'Variable') -> bool:
+		warnloop()
+		assert inloop()
 		return self is not du and self.name != du.name
 
 	@override(Derivable)
 	async def _aderiv(self, du: 'Variable') -> (0, 1):
+		warnloop()
+		assert inloop()
 		return await self.scrub(int(not await self.isconst(du)))
 
 @final
-class UserVariable(Variable):
+class UserVariable(UserObj, Variable):
 	@override(Variable)
 	async def __ainit__(self, name = Undefined, value = Undefined, **kwargs):
 		await super().__ainit__(value = value, name = name, **kwargs)

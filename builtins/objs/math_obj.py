@@ -1,3 +1,4 @@
+import warnings
 import logging
 from inspect import stack
 from typing import Any
@@ -17,7 +18,9 @@ class MathObj():
 		assert isinstance(cls, type)
 		if __debug__:
 			from .user_obj import UserObj
-			assert not args or issubclass(cls, UserObj), "Should only be using varargs for UserObjs"
+			if args and not issubclass(cls, UserObj):
+				warnings.warn("Should only be using varargs for UserObjs, not type {}".
+					format(cls.__qualname__), stacklevel = 2)
 		new = super().__new__(cls)
 
 		assert isinstance(new, MathObj) # not cls incase things like SeededOperator want to modify results
@@ -34,7 +37,9 @@ class MathObj():
 		assert inloop()
 		if __debug__:
 			from .user_obj import UserObj
-			assert not args or isinstance(self, UserObj), "Should only be using varargs for UserObjs"
+			if args and not isinstance(self, UserObj):
+				warnings.warn("Should only be using varargs for UserObjs, not type {}".
+					format(type(self).__qualname__), stacklevel = 2)
 		super().__init__(*args, **kwargs)
 
 	@staticmethod
@@ -95,7 +100,7 @@ class MathObj():
 			return arg
 		elif isinstance(arg, (int, float, bool, complex)):
 			from pymath2.builtins.constant import Constant
-			return await Constant.__anew__(Constant, arg)
+			return await Constant.__anew__(Constant, value = arg)
 		elif isinstance(arg, (tuple, list)):
 			from pymath2.extensions.math_list import MathList
 			return await MathList.__anew__(MathList, *arg)

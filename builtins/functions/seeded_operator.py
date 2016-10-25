@@ -1,5 +1,5 @@
 from typing import Any
-from pymath2 import Undefined, override, finish, future
+from pymath2 import Undefined, override, finish
 from pymath2.builtins.objs.math_obj import MathObj
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
