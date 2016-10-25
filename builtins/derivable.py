@@ -1,27 +1,43 @@
-from pymath2 import Undefined, final, complete
+from typing import TYPE_CHECKING
+from pymath2 import final, complete
 from .objs.math_obj import MathObj
+
+if __debug__:
+	from pymath2 import inloop
+
+
+from pymath2 import Undefined
 
 class Derivable(MathObj):
 
+
 	@final
 	def isconst(self, du: 'Variable') -> bool:
-		assert False, "don't use non-async functions!"
+		assert not inloop()
 		return complete(self._aisconst(du))
 
 	async def _aisconst(self, du: 'Variable') -> bool:
+		assert inloop()
 		raise NotImplementedError
 
 	@final
 	def deriv(self, du: 'Variable') -> ('ValuedObj', Undefined):
-		assert False, "don't use non-async functions!"
+		assert not inloop()
+		if __debug__:
+			from .variable import Variable
+		assert isinstance(du, Variable), 'Can only take derivative with regards to Variable, not {}'.format(type(du))
 		return complete(self._aderiv(du))
 
 	async def _aderiv(self, du: 'Variable') -> ('ValuedObj', Undefined):
+		assert inloop()
 		raise NotImplementedError
 
 	@final
 	def d(self, other: 'Variable') -> 'UnseededFunction':
-		assert False, "don't use non-async functions!"
+		assert not inloop()
+		if __debug__:
+			from .variable import Variable
+		assert isinstance(du, Variable), 'Can only take derivative with regards to Variable, not {}'.format(type(du))
 		from .derivative import Derivative
 		return Derivative(self) / Derivative(other)
 	

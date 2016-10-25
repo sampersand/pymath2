@@ -1,125 +1,148 @@
 from typing import Any
-from pymath2 import Undefined, override, final, complete, ensure_future
+from pymath2 import Undefined, override, final, complete
 from .math_obj import MathObj
 from pymath2.builtins.operable import Operable
 from pymath2.builtins.derivable import Derivable
+if __debug__:
+	from pymath2 import inloop
 class ValuedObj(Operable, Derivable):
-
+	_valid_types = {Undefined}
 	@override(Operable, Derivable)
 	async def __ainit__(self, value: Any = Undefined, **kwargs) -> None:
-		supi = await (super().__ainit__(**kwargs))
-		val  = ensure_future(self._avalue_setter(value))
-		# await supi
-		await val
+		assert inloop()
+		if type(value) not in self._valid_types:
+			raise TypeError('Cannot have type {} as a value for {}'.format(type(value), type(self)))
+
+		future(super().__ainit__(**kwargs))
+		future(self._avalue_setter(value))
 
 	@final
 	def value():
 		@final
 		def fget(self) -> (Any, Undefined):
-			# assert False, "don't use non-async functions!"
+			assert not inloop()
 			return complete(self._avalue)
 		@final
 		def fset(self, val: Any) -> None:
-			# assert False, "don't use non-async functions!"
+			assert not inloop()
 			return complete(self._avalue_setter(val))
 		@final
 		def fdel(self) -> None:
-			# assert False, "don't use non-async functions!"
+			assert not inloop()
 			return complete(self._avalue_deleter())
 		return locals()
 	value = property(**value())
 
 	@property
 	async def _avalue(self):
+		assert inloop()
 		return self._value
 
 	async def _avalue_setter(self, val: Any) -> None:
+		assert inloop()
 		await self.__asetattr__('_value', val)
 
 	async def _avalue_deleter(self) -> None:
+		assert inloop()
 		await self._avalue_setter(Undefined)
 
 	@property
 	@final
 	def hasvalue(self) -> bool:
-		assert False, "don't use non-async functions!"
+		assert not inloop()
 		return complete(self._ahasvalue)
 
 	@property
 	async def _ahasvalue(self) -> bool:
+		assert inloop()
 		return await self._avalue is not Undefined #await
 
 	@override(Derivable)
 	async def _aisconst(self, du: 'Variable'):
+		assert inloop()
 		return self != du
 
 	@final
 	def __abs__(self) -> float:
-		assert False, "don't use non-async functions!"
+		assert not inloop()
 		return complete(self.__aabs__())
 	async def __aabs__(self) -> float:
 		return abs(self.__afloat__(self))
 
 	@final
 	def __bool__(self) -> bool: 
-		assert False, "don't use non-async functions!"
+		assert not inloop()
 		return complete(self.__aabs__())
 	async def __abool__(self) -> bool:
+		assert inloop()
 		return bool(await self._avalue)
 
 	@final
 	def __int__(self) -> int:
-		assert False, "don't use non-async functions!"
+		assert not inloop()
 		return complete(self.__aint__())
 	async def __aint__(self) -> int:
-		return int(self.value)
+		assert inloop()
+		return int(await self._avalue)
 
 	@final
 	def __float__(self) -> float:
-		assert False, "don't use non-async functions!"
+		assert not inloop()
 		return complete(self.__afloat__())
 	async def __afloat__(self) -> float:
-		return float(self.value) 
+		assert inloop()
+		return float(await self._avalue) 
 
 	@final
 	def __complex__(self) -> complex:
-		assert False, "don't use non-async functions!"
+		assert not inloop()
 		return complete(self.__acomplex__())
 	async def __acomplex__(self) -> complex:
-		return complex(self.value)
+		assert inloop()
+		return complex(self._avalue)
 
 	@final
 	def __round__(self, digits: int) -> (int, float):
-		assert False, "don't use non-async functions!"
+		assert not inloop()
 		return complete(self.__around__())
 
 	async def __around__(self, digits: int) -> (int, float):
-		return round(float(self), int(digits))
+		assert inloop()
+		return round(await self.__afloat__(), int(digits))
 
 	@override(MathObj)
 	async def __aeq__(self, other: Any) -> bool:
+		assert inloop()
 		other = self.scrub(other)
 		if not hasattr(other, 'value'):
 			return False
-		myv = ensure_future(self._avalue)
-		otv = ensure_future(other._avalue)
-		myv = await myv
-		otv = await otv
-		if myv == otv and myv is not Undefined:
+		with finish():
+			myv = future(self._avalue)
+			otv = future(other._avalue)
+		if myv == otv and myv.result() is not Undefined:
 			return True
 		return super().__eq__(other)
 
 	@override(Operable, Derivable)
 	async def __astr__(self) -> str:
-		value = ensure_future(self._avalue)
-		hasvalue = ensure_future(self._ahasvalue)
-		return self.generic_str('unvalued') if not await hasvalue else\
-			await self.get_asyncattr(await value, '__str__')
+		assert inloop()
+		async with finish(): 
+			value = future(self._avalue)
+			hasvalue = future(self._ahasvalue)
+		if not hasvalue:
+			return self.generic_str('unvalued')
+		str_attr = self.get_asyncattr(await value, '__str__')
+		assert not isinstance(str_attr, MathObj)
+		return str(str_attr)
 
 	@override(Operable, Derivable)
 	async def __arepr__(self) -> str:
-		return '{}({})'.format(self.__class__.__name__,\
-				await self.get_asyncattr(await self._avalue))
+		assert inloop()
+		value = await self._avalue
+		value_attr = await self.get_asyncattr(self._avalue)
+		assert not isinstance(value_attr, MathObj)
+		value_repr = repr(value_attr)
+		return '{}({})'.format(self.__class__.__name__, value_repr)
 
 
 

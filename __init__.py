@@ -6,7 +6,7 @@ from .builtins.derivative import Derivative, UserDerivative as d
 from .builtins.functions.unseeded_function import UnseededFunction, UserFunction as func
 # from .extensions import *
 
-from .builtins.functions.operator import opers
+from .builtins.functions.operator import opers #to load up the main() function
 del opers
 
 

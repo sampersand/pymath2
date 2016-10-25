@@ -1,28 +1,7 @@
 from inspect import stack
 from typing import Any
 from pymath2 import Undefined, complete, final, iscoroutine
-class foo():
-	def __init__(self, a):
-		self._a = a
-	def __call__(self, there, *args, **kwargs):
-			# cb = self._a._maybe_complete_func(*args, **kwargs)
-			# quit('cb:'+str(cb))
-			# return callback(self._a._maybe_complete_func(*args, **kwargs))
-		# try:
-		c = self._a.__acall__(*args, **kwargs)
-		# c = complete(*args, **kwargs)
-		# except AssertionError:
-			# c = Undefined
-		# finally:
-		there.send(complete(c))
 
-		# quit('no')
-		# return complete(*args)
-the_thing_to_complete = None
-def bar(there):
-	global the_thing_to_complete
-	print('the_thing_to_complete in bar:', the_thing_to_complete)
-	there.send(complete(the_thing_to_complete))
 class MathObj():
 
 	@final
@@ -37,15 +16,6 @@ class MathObj():
 	@final
 	def _complete_func(self, *args, **kwargs):
 		return self._maybe_complete_func(*args, docomp = True, stack_pos = 2, **kwargs)
-		# async_name = self._get_async_name(stack()[1][3])
-		# assert hasattr(self, async_name)
-		# ret = getattr(self, async_name)(*args, **kwargs)
-		# ret = complete(ret)
-		# return ret
-
-	@final
-	def _maybe_complete_func(self, *args, docomp = None,
-					async_name = None, stack_pos = 1, callback = None, **kwargs):
 		async_name = async_name or self._get_async_name(stack()[stack_pos][3])
 		assert hasattr(self, async_name)
 		coro = getattr(self, async_name)(*args, **kwargs)

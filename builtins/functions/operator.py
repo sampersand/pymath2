@@ -48,7 +48,7 @@ class Operator(UnseededFunction):
 			self.req_arg_len)
 
 	async def _is_lower_precedence(self, other: UnseededFunction) -> bool: #_NOT_ the same as the one in SeededFunction
-		if not await self._ahasattr(other, 'priority'):
+		if not await self._ahasattr(other, 'priority'): #what is this
 			return False
 		return self.priority < other.priority
 

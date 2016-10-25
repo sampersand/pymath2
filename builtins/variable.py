@@ -2,7 +2,8 @@ from typing import Any
 from pymath2 import Undefined, override, final, future, finish
 from .objs.named_valued_obj import NamedValuedObj
 from .derivable import Derivable
-class Variable(NamedValuedObj, Derivable):
+from .number import Number
+class Variable(NamedValuedObj, Number):
 
 	@override(Derivable)
 	async def _aisconst(self, du: 'Variable') -> bool:
