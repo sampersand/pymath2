@@ -1,6 +1,6 @@
 from typing import Callable
 
-from pymath2 import Undefined, override, complete, ensure_future
+from pymath2 import Undefined, override, complete, ensure_future, finish
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.valued_obj import ValuedObj
 from pymath2.builtins.objs.math_obj import MathObj
@@ -104,8 +104,8 @@ class SubOperator(MultiArgOperator):
 
 	@override(MultiArgOperator)
 	async def deriv_w_args(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
-		ld = ensure_future(l.deriv(du))
-		rd = ensure_future(r.deriv(du))
+		ld = ensure_future(l._aderiv(du))
+		rd = ensure_future(r._aderiv(du))
 		return await ld - await rd
 
 
@@ -135,8 +135,8 @@ class AddOperator(MultiArgOperator):
 
 	@override(MultiArgOperator)
 	async def deriv_w_args(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
-		ld = ensure_future(l.deriv(du))
-		rd = ensure_future(r.deriv(du))
+		ld = ensure_future(l._aderiv(du))
+		rd = ensure_future(r._aderiv(du))
 		return await ld + await rd
 
 
@@ -167,8 +167,8 @@ class MulOperator(MultiArgOperator):
 
 	@override(MultiArgOperator)
 	async def deriv_w_args(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
-		ld = ensure_future(l.deriv(du))
-		rd = ensure_future(r.deriv(du))
+		ld = ensure_future(l._aderiv(du))
+		rd = ensure_future(r._aderiv(du))
 		return await ld * r + l * await rd 
 
 class TrueDivOperator(MultiArgOperator):
@@ -186,8 +186,8 @@ class TrueDivOperator(MultiArgOperator):
 
 	@override(MultiArgOperator)
 	async def deriv_w_args(self, du: Variable, n: ValuedObj, d: ValuedObj) -> (ValuedObj, Undefined):
-		nd = ensure_future(n.deriv(du))
-		dd = ensure_future(d.deriv(du))
+		nd = ensure_future(n._aderiv(du))
+		dd = ensure_future(d._aderiv(du))
 		return (d * await nd - n * await dd) / d ** 2
 
 class PowOperator(MultiArgOperator):
@@ -216,21 +216,23 @@ class PowOperator(MultiArgOperator):
 
 	@override(MultiArgOperator)
 	async def deriv_w_args(self, du: Variable, b: ValuedObj, p: ValuedObj) -> (ValuedObj, Undefined):
-		bc = ensure_future(b.isconst(du))
-		pc = ensure_future(p.isconst(du))
-		bc = await bc
-		pc = await pc
+		async with finish() as f:
+			bc = f.future(b._aisconst(du))
+			pc = f.future(p._aisconst(du))
+		bc = bc.result()
+		pc = pc.result()
 		if bc and pc:
 			return 0
 
 		if not bc:
-			bd = ensure_future(b.deriv(du))
+			bd = ensure_future(b._aderiv(du))
 		if not pc:
-			pd = ensure_future(p.deriv(du))
+			pd = ensure_future(p._aderiv(du))
 			from pymath2.extensions.functions import ln
-			lnb = ln(b)
+			lnb = await ln.__acall__(b)
 
 		if not bc and pc:
+
 			return p * b ** (p - 1) * await bd
 		if bc and not pc:
 			return b ** p * lnb * await pd
@@ -268,7 +270,7 @@ class UnaryOper(Operator):
 		assert len(args) == 1
 
 		name = ensure_future(self._aname)
-		deriv = ensure_future(args[0].deriv(du))
+		deriv = ensure_future(args[0]._aderiv(du))
 		name = await name
 
 		if name == '-':

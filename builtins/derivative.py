@@ -3,10 +3,10 @@ from typing import Any
 from pymath2 import Undefined, override, final, complete, finish
 # from .functions.unseeded_function import 'UnseededFunction'
 from .objs.named_valued_obj import NamedValuedObj
-if __debug__:
-	from .objs.valued_obj import ValuedObj
-	from .objs.named_obj import NamedObj
-	from pymath2 import inloop
+from .objs.valued_obj import ValuedObj #debug
+from .objs.named_obj import NamedObj #debug
+from pymath2 import inloop #debug
+from .variable import Variable
 class Derivative(NamedValuedObj):
 	@override(NamedValuedObj)
 	async def __ainit__(self, value: NamedValuedObj, **kwargs) -> None:
@@ -27,17 +27,17 @@ class Derivative(NamedValuedObj):
 
 	async def __atruediv__(self, other):
 		assert inloop()
-		async with finish():
-			ov = future(self._avalue)
-			sv = future(other._avalue)
+		async with finish() as f:
+			sv = f.future(self._avalue)
+			ov = f.future(other._avalue)
 		ov = ov.result()
-		if __debug__:
-			import Variable
-			assert isinstance(ov, Variable), 'cannot take deriv with regards to a non-variable'
-		await ov.__asetattr__('_old_value_before_deriv', await ov._avalue())
+		# if not isinstance
+		if not isinstance(ov, Variable):
+			raise TypeError('Can only take deriv with regards to a Variable, not {}'.format(type(ov)))
+		await ov.__asetattr__('_old_value_before_deriv', await ov._avalue)
 		await ov._avalue_deleter()
 
-		ret = await sv.result().deriv(ov)
+		ret = await sv.result()._aderiv(ov)
 
 		await ov._avalue_setter(ov._old_value_before_deriv)
 		await ov.__adelattr__('_old_value_before_deriv')
@@ -45,6 +45,7 @@ class Derivative(NamedValuedObj):
 
 	@override(NamedValuedObj)
 	async def __astr__(self) -> str:
+		assert inloop()
 		return self._aname
 
 @final

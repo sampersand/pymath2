@@ -1,28 +1,39 @@
+from . import logger
 from types import CoroutineType, FunctionType, GeneratorType, MethodType
 from typing import Type, Callable, TypeVar, Any, Union
 def get_obj_name(obj_or_name):
 	""" Determine the name of the object """
 	if isinstance(obj_or_name, str):
-		return obj_or_name
+		name = obj_or_name
 	elif type(obj_or_name) == staticmethod:
-		return obj_or_name.__func__.__name__
+		name = obj_or_name.__func__.__name__
 	elif type(obj_or_name) == property:
-		return get_obj_name(obj_or_name.fget)
+		name = get_obj_name(obj_or_name.fget)
 	elif hasattr(obj_or_name, '__name__'):
-		return obj_or_name.__name__
+		name = obj_or_name.__name__
 	else:
-		raise ValueError('No way to determine name for ' + str(obj.__class__))
+		name = None
+		logger.error('Couldnt determine a name for type {}'.format(type(obj_or_name)))
+		return name
+	assert name # there shouldn't be an empty name...
+	logger.debug('Found a name for object of type {!s}: {!s}'.format(type(obj_or_name), name))
+	return name
 
-
-def _determine_presence(classes, name, do_crash):
-	if not __debug__:
-		return None
+def _does_name_exist(classes, name, do_crash):
+	"""
+	determins if attribute name exists in every class.
+	logger is implied if do_crash is false
+	"""
+	assert __debug__, 'Not required for this function, but parent functions should have checked'
 	for cls in classes:
+		assert isinstance(cls, type)
 		if not hasattr(cls, name):
+			err_str = '{} isnt overriding something with the same name in {}'.format(name, cls)
+			logger.warning(err_str)
 			if do_crash:
-				raise NameError('{} isnt overriding something with the same name in {}'.
-								format(name, cls))
-			return False # else
+				raise AttributeError(err_str)
+			assert not do_crash
+			return False
 	return True
 
 from .copy_doc import copy_doc
@@ -76,7 +87,8 @@ def override(*parents: Type[Any],
 	Keyword Arguments:
 		name        -- The name to check. If left blank, a wrapper function will be returned, from
 		               which name will be derived. (default: None)
-		do_crash    -- If True, a NameError will be raised if name isn't found.
+		do_crash    -- If True, an AttributeError will be raised if name isn't found. Regardless, if
+		               name isn't found, it will be logged.
 		               (default: None --> False if name is specified, True otherwise)
 		do_copy_doc -- If True, the documentation from the first parent's instance will be copied to 
 		               the wrapper's argument. If a wrapper isn't used, this does nothing.
@@ -91,22 +103,42 @@ def override(*parents: Type[Any],
 
 
     Raises:
-    	NameError  -- If the name isn't found in the parent classes, and do_crash is True.
-    	ValueError -- If the wrapper was used and a name wasn't able to be ascertained from the
-    	              passed argument.
+    	AttributeError -- If the name isn't found in the parent classes, and do_crash is True. Also,
+    	                  if the wrapper's argument was supplied, but the name could not be ascertained.
+    	ValueError     -- If the wrapper was used and a name wasn't able to be ascertained from the
+    	                  passed argument.
 
 	"""
+	if not __debug__:
+		logger.debug("Debug disabled, not checking existance of name {} in parent classes.".format(name))
+		if name is not None:
+			return None
+		return lambda x: x #for thigns expecting a wrapper function (ie @overload)
 	if name is not None:
-		return _determine_presence(parents, name, False if do_crash == None else do_crash)
+		logger.debug("Name was supplied ({}). Using that".format(name))
+		assert isinstance(name, str), 'Attributes are Strings!'
+		return _does_name_exist(parents, name, False if do_crash == None else do_crash)
 
 	def capture(inp_obj: T) -> T:
 		""" Determine (if possible) inp_obj's name, copy doc if needed, and pass it to override ."""
 		obj_name = get_obj_name(inp_obj)
-		_determine_presence(parents, obj_name, True if do_crash == None else do_crash)
+		if obj_name == None:
+			logger.error('Couldnt determine a name for type {}'.format(type(inp_obj)))
+			raise AttributeError('Cannot find name for object type {}'.format(type(inp_obj)))
+		exists = _does_name_exist(parents, obj_name, True if do_crash == None else do_crash)
+		assert not do_crash or exists  #if do_crash is false, it doesnt matter if it exists
 		if do_copy_doc:
 			copy_doc(parents[0], inp_obj, obj_name)
+			logger.debug("Copied doc from parent {} to object {}".format(parents[0], obj_name))
 		if check_final:
 			check_final(parents, obj_name, True if do_crash == None else do_crash)
 		return inp_obj
 
 	return capture
+
+
+
+
+
+
+

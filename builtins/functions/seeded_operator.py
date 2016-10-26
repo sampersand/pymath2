@@ -60,10 +60,10 @@ class SeededOperator(SeededFunction):
 
 	async def _bool_oper_str(self, l, r) -> str:
 		# print('Dummy Method: _bool_oper_str') #still is kinda
-		async with finish():
-			l = future(self._possibly_surround_in_parens(l))
-			r = future(self._possibly_surround_in_parens(r))
-			n = future(self._aname)
+		async with finish() as f:
+			l = f.future(self._possibly_surround_in_parens(l))
+			r = f.future(self._possibly_surround_in_parens(r))
+			n = f.future(self._aname)
 		return '{} {} {}'.format(l.result(), n.result(), r.result())
 
 	@override(SeededFunction)

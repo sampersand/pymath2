@@ -1,12 +1,20 @@
+import asyncio
 from typing import Callable
+
+
+from . import logger
+
 from pymath2 import Undefined, override, final, complete, ensure_future, finish
+
 from pymath2.builtins.objs.named_obj import NamedObj
 from pymath2.builtins.objs.user_obj import UserObj
+
 from .seeded_function import SeededFunction
 from .seeded_operator import SeededOperator
+
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.constant import Constant
-import asyncio
+
 
 class UnseededFunction(NamedObj):
 	seeded_type = SeededFunction

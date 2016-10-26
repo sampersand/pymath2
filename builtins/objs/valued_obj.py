@@ -6,16 +6,9 @@ from pymath2.builtins.derivable import Derivable
 if __debug__:
 	from pymath2 import inloop
 class ValuedObj(Operable, Derivable):
-	_valid_types = {type(Undefined)}
 	@override(Operable, Derivable)
 	async def __ainit__(self, value: Any = Undefined, **kwargs) -> None:
 		assert inloop()
-		if type(value) not in self._valid_types:
-			raise TypeError('Cannot have type {} as a value for {}. Valid Types: {}'.format(
-																		   type(value).__qualname__,
-																		   type(self).__qualname__,
-																		   self._valid_types, ))
-
 		async with FinishSet() as f:
 			f.future(super().__ainit__(**kwargs))
 			f.future(self._avalue_setter(value))
@@ -64,7 +57,7 @@ class ValuedObj(Operable, Derivable):
 	@override(Derivable)
 	async def _aisconst(self, du: 'Variable'):
 		assert inloop()
-		return self != du
+		return not self.__aeq__(du)
 
 	@final
 	def __abs__(self) -> float:

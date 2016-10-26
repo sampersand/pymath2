@@ -1,4 +1,4 @@
-from pymath2 import Undefined, final
+from pymath2 import Undefined, final, override
 from .math_list import MathList
 from pymath2.builtins.objs.user_obj import UserObj
 class AbstractPoint(MathList):
@@ -16,5 +16,6 @@ class UserPoint(UserObj, AbstractPoint):
 	_parse_args_regex = r'^(?P<name>\w+)\s*=\s*(?:point|UserPoint|p|\w+)\s*[(].*[)]\s*$'
 	override(UserObj, name = '_parse_args_regex')
 
-	def __init__(self, *args, **kwargs):
-		super().__init__(list_args = args, **kwargs)
+	async def __ainit__(self, *args, **kwargs):
+		assert inloop()
+		super().__ainit__(list_args = args, **kwargs)

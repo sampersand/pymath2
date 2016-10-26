@@ -1,15 +1,21 @@
 from typing import Any
-from pymath2 import Undefined, override, finish, iscoroutine, warnloop, inloop, debugf
+
+from . import logger
+
+from pymath2 import Undefined, override, finish, iscoroutine, warnloop, inloop
+
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.operable import Operable
+from pymath2.builtins.derivable import Derivable
+
 from pymath2.builtins.objs.valued_obj import ValuedObj
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
-from pymath2.builtins.derivable import Derivable
+
 class SeededFunction(NamedValuedObj, Derivable):
 
 	@override(NamedValuedObj)
 	async def __ainit__(self, unseeded_base_object: 'UnseededFunction', args: tuple = Undefined, **kwargs) -> None:
-		warnloop()
+		warnloop(logger)
 		assert inloop()
 		if __debug__:
 			from .unseeded_function import UnseededFunction
@@ -22,7 +28,7 @@ class SeededFunction(NamedValuedObj, Derivable):
 		assert hasattr(self, 'args')
 	@property
 	async def _args_str(self):
-		warnloop()
+		warnloop(logger)
 		assert inloop()
 		ret = []
 		async with finish() as f:
@@ -33,7 +39,7 @@ class SeededFunction(NamedValuedObj, Derivable):
 	@override(NamedValuedObj)
 	@property
 	async def _aname(self):
-		warnloop()
+		warnloop(logger)
 		assert inloop()
 		if self._name is Undefined:
 			return await self.unseeded_base_object._aname
@@ -43,15 +49,17 @@ class SeededFunction(NamedValuedObj, Derivable):
 
 	###
 	def get_vars(self):
-		# warnloop(False) #idk if this is necessary
-		# assert not inloop() #idk if this is necessary
+		warnloop(logger) #idk if this is necessary
+		assert inloop() #idk if this is necessary
 		ret = []
 		for arg in self.args:
 			if isinstance(arg, SeededFunction):
-				debugf('Append get_vars from SeededFunction at 0x{:0x}', id(arg)) #cause cant call str
+				logger.debug('Append get_vars from SeededFunction at 0x{:0x}'.format(id(arg)))
+					# cause cant call str cause might be in loop
 				ret += arg.get_vars()
 			elif isinstance(arg, Variable):
-				debugf('Appending get_vars from Variable at 0x{:0x}', id(arg))
+				logger.debug('Append get_vars from Variable at 0x{:0x}'.format(id(arg)))
+					# cause cant call str cause might be in loop
 				ret.append(arg)
 		return ret
 	###
@@ -114,7 +122,7 @@ class SeededFunction(NamedValuedObj, Derivable):
 
 
 	# def deriv(self, du: Variable) -> 'SeededFunction':
-	# 	derviative = (self.value).deriv(du)
+	# 	derviative = (self.value)._aderiv(du)
 	# 	print(derviative)
 	# 	quit()
 

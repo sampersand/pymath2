@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(__name__)
+
 from .functions import *
 from .constants import *
 from .vector import UserVector as vector

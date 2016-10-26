@@ -1,5 +1,5 @@
 
-from pymath2 import Undefined, Constant, Variable, override
+from pymath2 import Undefined, Constant, Variable, override, inloop
 from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 from pymath2.builtins.objs.math_obj import MathObj
 class MathList(NamedValuedObj, list):
@@ -9,11 +9,13 @@ class MathList(NamedValuedObj, list):
 
 	@override(NamedValuedObj)
 	async def __anew__(cls, *args, name = Undefined, **kwargs):
+		assert inloop()
 		return super().__anew__(cls, *args, **kwargs)
 
 	print_parens = ('(', ')')
-	@override(NamedValuedObj, list)
+	@override(NamedValuedObj)
 	async def __ainit__(self, *args, **kwargs):
+		assert inloop()
 		super().__ainit__(**kwargs)
 		argsl = [ensure_future(self.scrub(arg)) for arg in args]
 		args = []
@@ -35,6 +37,7 @@ class MathList(NamedValuedObj, list):
 
 	@override(NamedValuedObj)
 	async def scrub(self, arg):
+		assert inloop()
 		ret = await super().scrub(arg)
 		if isinstance(ret, Constant):
 			ret = Variable(value = ret.value)
@@ -42,27 +45,31 @@ class MathList(NamedValuedObj, list):
 
 	@override(NamedValuedObj)
 	@NamedValuedObj.hasvalue.getter
-	def hasvalue(self):
-		return all(x.hasvalue for x in self)
+	async def _ahasvalue(self):
+		assert inloop()
+		for x in self:
+			if not await x._ahasvalue:
+				return False
+		return True
 
 	@override(NamedValuedObj)
 	@NamedValuedObj.value.getter
-	def value(self):
-		if not self.hasvalue:
+	async def _avalue(self):
+		if not await self._ahasvalue:
 			return Undefined
 		return list(self)
 
-	@override(NamedValuedObj, list)
-	def __str__(self):
+	@override(NamedValuedObj)
+	async def __astr__(self):
 		return '{}{}{}{}'.format(
-			self.name,
+			await self._aname,
 			self.print_parens[0],
-			', '.join(str(x) for x in self),
+			', '.join(self.list_str(self)),
 			self.print_parens[1])
 
-	@override(NamedValuedObj, list)
-	def __repr__(self):
-		return '{}({})'.format(self.__class__.__qualname__, ', '.join(repr(x) for x in self))
+	@override(NamedValuedObj)
+	async def __arepr__(self):
+		return '{}({})'.format(self.__class__.__qualname__, ', '.join(self.list_str(self, repr = True)))
 
 	@property
 	def _len_attr(self) -> dict:

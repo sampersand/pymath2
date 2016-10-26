@@ -1,4 +1,6 @@
-from asyncio import get_event_loop
+from . import get_event_loop
 def inloop():
-	return get_event_loop().is_running()
+	event_loop = get_event_loop()
+	assert event_loop != None #maybe another assert other than none?
+	return event_loop.is_running()
 

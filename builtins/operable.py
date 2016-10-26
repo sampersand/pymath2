@@ -1,7 +1,7 @@
 from inspect import stack
 
 from typing import Any
-from pymath2 import Undefined, complete, final, ensure_future
+from pymath2 import Undefined, complete, final
 from .objs.math_obj import MathObj
 if __debug__:
 	from pymath2 import inloop

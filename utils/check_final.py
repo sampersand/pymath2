@@ -1,5 +1,6 @@
+from .override import get_obj_name
 def check_final(parents, obj_or_name, do_crash):
-	from .override import get_obj_name
+	""" Check to make sure an object is not final. """
 	name = get_obj_name(obj_or_name)
 	for parent in parents:
 		if hasattr(parent, '_is_final') and parent._is_final:
