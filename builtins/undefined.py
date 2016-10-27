@@ -2,50 +2,50 @@ from typing import Any
 from pymath2 import final
 # @final
 class UndefinedClass():
-	def __str__(self) -> str: return 'Undefined'
-	def __repr__(self) -> str: return '{}()'.format(self.__class__.__name__)
+	async def __astr__(self) -> str: return 'Undefined'
+	async def __arepr__(self) -> str: return '{}()'.format(self.__class__.__name__)
 
-	def __add__(self, other: Any) -> 'self': return self
-	def __sub__(self, other: Any) -> 'self': return self
-	def __mul__(self, other: Any) -> 'self': return self
-	def __truediv__(self, other: Any) -> 'self': return self
-	def __floordiv__(self, other: Any) -> 'self': return self
-	def __mod__(self, other: Any) -> 'self': return self
-	def __pow__(self, other: Any) -> 'self': return self
+	async def __aadd__(self, other: Any) -> 'self': return self
+	async def __asub__(self, other: Any) -> 'self': return self
+	async def __amul__(self, other: Any) -> 'self': return self
+	async def __atruediv__(self, other: Any) -> 'self': return self
+	async def __afloordiv__(self, other: Any) -> 'self': return self
+	async def __amod__(self, other: Any) -> 'self': return self
+	async def __apow__(self, other: Any) -> 'self': return self
 
-	def __radd__(self, other: Any) -> 'self': return self
-	def __rsub__(self, other: Any) -> 'self': return self
-	def __rmul__(self, other: Any) -> 'self': return self
-	def __rtruediv__(self, other: Any) -> 'self': return self
-	def __rfloordiv__(self, other: Any) -> 'self': return self
-	def __rmod__(self, other: Any) -> 'self': return self
-	def __rpow__(self, other: Any) -> 'self': return self
+	async def __aradd__(self, other: Any) -> 'self': return self
+	async def __arsub__(self, other: Any) -> 'self': return self
+	async def __armul__(self, other: Any) -> 'self': return self
+	async def __artruediv__(self, other: Any) -> 'self': return self
+	async def __arfloordiv__(self, other: Any) -> 'self': return self
+	async def __armod__(self, other: Any) -> 'self': return self
+	async def __arpow__(self, other: Any) -> 'self': return self
 
-	def __eq__(self, other: Any) -> bool: return other is self
-	def __ne__(self, other: Any) -> bool: return not (self == other)
-	def __lt__(self, other: Any) -> 'self': return self
-	def __gt__(self, other: Any) -> 'self': return self
-	def __le__(self, other: Any) -> 'self': return self
-	def __gt__(self, other: Any) -> 'self': return self
+	async def __aeq__(self, other: Any) -> bool: return other is self
+	async def __ane__(self, other: Any) -> bool: return not (self == other)
+	async def __alt__(self, other: Any) -> 'self': return self
+	async def __agt__(self, other: Any) -> 'self': return self
+	async def __ale__(self, other: Any) -> 'self': return self
+	async def __agt__(self, other: Any) -> 'self': return self
 
-	def __abs__(self) -> 'self': return self
-	def __neg__(self) -> 'self': return self
-	def __pos__(self) -> 'self': return self
-	def __invert__(self) -> 'self': return self
+	async def __aabs__(self) -> 'self': return self
+	async def __aneg__(self) -> 'self': return self
+	async def __apos__(self) -> 'self': return self
+	async def __ainvert__(self) -> 'self': return self
 
-	def __and__(self, other: Any) -> 'self': return self
-	def __or__(self, other: Any) -> 'self': return self
-	def __xor__(self, other: Any) -> 'self': return self
-	def __lshift__(self, other: Any) -> 'self': return self
-	def __rshift__(self, other: Any) -> 'self': return self
+	async def __aand__(self, other: Any) -> 'self': return self
+	async def __aor__(self, other: Any) -> 'self': return self
+	async def __axor__(self, other: Any) -> 'self': return self
+	async def __alshift__(self, other: Any) -> 'self': return self
+	async def __arshift__(self, other: Any) -> 'self': return self
 
-	def __rand__(self, other: Any) -> 'self': return self
-	def __ror__(self, other: Any) -> 'self': return self
-	def __rxor__(self, other: Any) -> 'self': return self
-	def __rlshift__(self, other: Any) -> 'self': return self
-	def __rrshift__(self, other: Any) -> 'self': return self
+	async def __arand__(self, other: Any) -> 'self': return self
+	async def __aror__(self, other: Any) -> 'self': return self
+	async def __arxor__(self, other: Any) -> 'self': return self
+	async def __arlshift__(self, other: Any) -> 'self': return self
+	async def __arrshift__(self, other: Any) -> 'self': return self
 
-	def __bool__(self) -> bool: return False
+	async def __abool__(self) -> bool: return False
 	# def __float__(self): raise AttributeError("Cannot take the f__float__")
 	# def __int__(self): raise AttributeError("Cannot take the f__int__")
 	# def __complex__(self): raise AttributeError("Cannot take the f__complex__")

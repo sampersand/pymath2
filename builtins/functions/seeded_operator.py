@@ -6,7 +6,7 @@ from pymath2.builtins.objs.named_valued_obj import NamedValuedObj
 from .seeded_function import SeededFunction
 class SeededOperator(SeededFunction):
 	@classmethod
-	def _collapse_args(cls, unseeded_base_object, args, kwargs):
+	async def _collapse_args(cls, unseeded_base_object, args, kwargs):
 		if unseeded_base_object.req_arg_len == -1:
 			args_to_pass = []
 			do_make_new = False
@@ -21,19 +21,23 @@ class SeededOperator(SeededFunction):
 				args = list(args)
 				# print(args_to_pass)
 				# return cls(unseeded_base_object, args, **kwargs)
-				return cls(unseeded_base_object= unseeded_base_object, args = args_to_pass, **kwargs)
+				return await cls.__anew__(cls = cls, unseeded_base_object= unseeded_base_object, args = args_to_pass, **kwargs)
 	async def __anew__(cls, unseeded_base_object: 'Operator', args: tuple, **kwargs) -> 'SeededOperator':
-		collapsed = cls._collapse_args(unseeded_base_object, args, kwargs)
-		if collapsed != None:
+		collapsed = await cls._collapse_args(unseeded_base_object, args, kwargs)
+		if collapsed is not None:
 			return collapsed
 		# simplified = unseeded_base_object.simplify(cls, args, kwargs)
 		# print('simplified', simplified)
 		# if simplified != None:
 			# return simplified
-		return await super().__anew__(cls, unseeded_base_object = unseeded_base_object, args = args, **kwargs)
+		return await super().__anew__(cls = cls,
+									  unseeded_base_object = unseeded_base_object,
+									  args = args,
+									  **kwargs)
 
 	@override(SeededFunction)
 	async def __ainit__(self, unseeded_base_object, args, **kwargs) -> None:
+
 		await super().__ainit__(unseeded_base_object = unseeded_base_object, args = args, **kwargs)
 
 		if __debug__:
@@ -89,7 +93,7 @@ class SeededOperator(SeededFunction):
 
 	@override(SeededFunction)
 	async def _aderiv(self, du: Variable) -> ('ValuedObj', Undefined):
-		return await self.unseeded_base_object.deriv_w_args(du, *self.args) #await
+		return await self.scrub(await self.unseeded_base_object.deriv_w_args(du, *self.args))
 
 
 # ###

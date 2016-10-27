@@ -12,12 +12,20 @@ from pymath2 import Undefined
 class Constant(Number):
 
 	@override(Derivable)
+	async def _aisconst(self, du: 'Variable') -> 0:
+		assert inloop()
+		if __debug__:
+			from .variable import Variable
+			assert isinstance(du, Variable), 'Can only check constant-ness with regards to Variable, not {}'.format(type(du))
+		return True
+
+	@override(Derivable)
 	async def _aderiv(self, du: 'Variable') -> 0:
 		assert inloop()
 		if __debug__:
 			from .variable import Variable
-		assert isinstance(du, Variable), 'Can only take derivative with regards to Variable, not {}'.format(type(du))
-		return 0
+			assert isinstance(du, Variable), 'Can only take derivative with regards to Variable, not {}'.format(type(du))
+		return await self.scrub(0)
 
 	@override(Number)
 	async def __arepr__(self) -> str:

@@ -69,7 +69,7 @@ class MathObj():
 			if args and not isinstance(self, UserObj):
 				warnings.warn("Should only be using varargs for UserObjs, not type {}".
 					format(type(self).__qualname__), stacklevel = 2)
-		logger.debug("Ran super().__init__ for object type {}".format(type(self).__qualname__))
+		logger.debug("Ran super().__init__ for object type {}".format(type(self).__qualname__), stack_info = True)
 		super().__init__(*args, **kwargs)
 
 	@staticmethod
@@ -101,7 +101,9 @@ class MathObj():
 	async def has_asyncattr(obj, attr):
 		assert inloop()
 		async_name = MathObj._get_async_name(attr)
-		return async_name and hasattr(obj, async_name)
+		if not isinstance(obj, (MathObj, type(Undefined))):
+			logger.warning('Type {} is not a MathObj or Undefined'.format(type(obj)))
+		return async_name != None and hasattr(obj, async_name)
 
 	@classmethod
 	def generic_str(cls: type, prefix: str) -> str:
@@ -130,6 +132,7 @@ class MathObj():
 			return arg
 		elif isinstance(arg, (int, float, bool, complex)):
 			from pymath2.builtins.constant import Constant
+			print('new constant for type', arg)
 			return await Constant.__anew__(Constant, value = arg)
 		elif isinstance(arg, (tuple, list)):
 			from pymath2.extensions.math_list import MathList
@@ -184,7 +187,7 @@ class MathObj():
 		return complete(self.__adelattr__(name))
 	async def __adelattr__(self, name):
 		assert inloop()
-		return super().__delattr__(name, val)
+		return super().__delattr__(name)
 
 
 	async def _ahasattr(self, attr_or_obj, attr = None):

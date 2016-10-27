@@ -2,11 +2,7 @@ from typing import TYPE_CHECKING
 from pymath2 import final, complete
 from .objs.math_obj import MathObj
 
-if __debug__:
-	from pymath2 import inloop
-
-
-from pymath2 import Undefined
+from pymath2 import Undefined, complete, inloop
 
 class Derivable(MathObj):
 
@@ -33,11 +29,13 @@ class Derivable(MathObj):
 		raise NotImplementedError
 
 	@final
-	def d(self, other: 'Variable') -> 'UnseededFunction':
+	def d(self, du: 'Variable') -> 'UnseededFunction':
 		assert not inloop()
 		if __debug__:
 			from .variable import Variable
 		assert isinstance(du, Variable), 'Can only take derivative with regards to Variable, not {}'.format(type(du))
 		from .derivative import Derivative
-		return Derivative(self) / Derivative(other)
+		return complete(Derivative._a_get_deriv(self, du))
 	
+
+

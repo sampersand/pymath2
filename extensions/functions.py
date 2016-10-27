@@ -23,7 +23,7 @@ class SeededMathFunction(SeededFunction):
 
 	@override(SeededFunction)
 	async def _aderiv(self, du: Variable) -> 'SeededFunction':
-		return self.unseeded_base_object.deriv_w_args(du, self.args[0])
+		return await self.scrub(self.unseeded_base_object.deriv_w_args(du, self.args[0]))
 
 class MathFunction(UnseededFunction):
 	seeded_type = SeededMathFunction

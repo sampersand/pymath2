@@ -91,30 +91,35 @@ class SeededFunction(NamedValuedObj, Derivable):
 	@override(NamedValuedObj)
 	@property
 	async def _ahasvalue(self) -> Any:
+		selfv = await self._avalue
+		hasv = await selfv._ahasvalue
+		return hasv
 		return await (await self._avalue)._ahasvalue #double await
 
 	@override(NamedValuedObj)
 	async def __astr__(self) -> str:
 		if await self._ahasvalue:
 			return await (await self._avalue).__astr__()
-		name = ensure_future(self._aname)
-		primestr = ensure_future(self.unseeded_base_object._aprime_str(self.unseeded_base_object.deriv_num))
-		if self.args is Undefined:
-			args = ensure_future(self.args.__astr__())
-		else:
-			args = []
-			for arg in (ensure_future(x.__astr__()) for x in self.args):
-				args.append(await arg)
-			args = ', '.join(args)
-		return '{}{}({})'.format(await name, await primestr, args)
+		async with finish() as f:
+			name = f.future(self._aname)
+			primestr = f.future(self.unseeded_base_object._aprime_str(self.unseeded_base_object.deriv_num))
+			if self.args is Undefined:
+				args = f.future(self.args.__astr__())
+			else:
+				args = []
+				for arg in (f.future(x.__astr__()) for x in self.args):
+					args.append(await arg)
+				args = ', '.join(args)
+			return '{}{}({})'.format(await name, await primestr, args)
 
 	@override(NamedValuedObj)
 	async def __arepr__(self) -> str:
-		baseobj = ensure_future(self.unseeded_base_object.__arepr__())
-		hasname = ensure_future(self._ahasname)
-		name = ensure_future(self._aname)
-		args = ', {}'.format(await self.get_asyncattr(args)) if self.args is not Undefined else ''
-		return '{}({}{}{})'.format(self.__class__.__name__, await baseobj, args, await name if await hasname else '')
+		async with finish() as f:
+			baseobj = f.future(self.unseeded_base_object.__arepr__())
+			hasname = f.future(self._ahasname)
+			name = f.future(self._aname)
+			args = ', {}'.format(await self.get_asyncattr(args)) if self.args is not Undefined else ''
+			return '{}({}{}{})'.format(self.__class__.__name__, await baseobj, args, await name if await hasname else '')
 
 	@override(Derivable)
 	async def _aisconst(self, du):
@@ -129,7 +134,7 @@ class SeededFunction(NamedValuedObj, Derivable):
 
 	@staticmethod
 	async def _gen_wrapped_func(val, du):
-		deriv = ensure_future(val._aderiv(du))
+		deriv = await (val._aderiv(du))
 		# print(deriv)
 		# b = deriv.unseeded_base_object.func
 		# print(b)
@@ -158,9 +163,9 @@ class SeededFunction(NamedValuedObj, Derivable):
 	async def _aderiv(self, du: Variable) -> 'UnseededFunction':
 		from .unseeded_function import UnseededFunction
 
+
 		req_arg_len = self.unseeded_base_object.req_arg_len #ensure_future
-		func = ensure_future(self._gen_wrapped_func(await self._avalue, du))
-		func = await func
+		func = await self._gen_wrapped_func(await self._avalue, du)
 		func_str = str(func)
 		uns_func =  UnseededFunction(
 							  func = lambda *args: func(*args), #await
@@ -173,7 +178,10 @@ class SeededFunction(NamedValuedObj, Derivable):
 		# print(derived_function)
 	@override(Derivable)
 	async def _aderiv(self, du: Variable) -> 'SeededFunction':
-		return await (await self._avalue)._aderiv(du)
+		ret = await (await self._avalue)._aderiv(du)
+		from pymath2.builtins.objs.math_obj import MathObj
+		assert isinstance(ret, MathObj)
+		return ret
 
 
 

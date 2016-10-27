@@ -1,18 +1,28 @@
 from typing import Callable
-
-from pymath2 import Undefined, override, complete, ensure_future, finish
+from . import logger
+from pymath2 import Undefined, override, complete, finish
 from pymath2.builtins.variable import Variable
 from pymath2.builtins.objs.valued_obj import ValuedObj
 from pymath2.builtins.objs.math_obj import MathObj
 from .unseeded_function import UnseededFunction
 from .seeded_operator import SeededOperator
 async def _domethod(funcname, l, *args):
+	# l = await Operator.scrub(l)
+	if __debug__:
+		# assert isinstance(l, (MathObj, type(Undefined))), l
+		logger.debug(str(id(l)) + ' i am here with type(l)::' + str(type(l)))
+		logger.debug(str(id(l)) + ' MathObj.has_asyncatter({}) = {}'.
+			format(funcname, await MathObj.has_asyncattr(l, funcname)))
 	if await MathObj.has_asyncattr(l, funcname):
-		attr = await l.get_asyncattr(l, funcname, call = False)
+		attr = await MathObj.get_asyncattr(obj = l, attr = funcname, call = False)
+		if __debug__:
+			from types import MethodType
+			logger.debug(str(id(l)) + ' i have an atter of ' + str(attr))
 		called_attr = attr(*args)
-		return await called_attr
-		# return await (await l.get_asyncattr(funcname, call = False))(*args)
-	return getattr(l, funcname)(*args)
+		ret = await called_attr
+	else:
+		ret = getattr(l, funcname)(*args)
+	return await Operator.scrub(ret)
 
 class Operator(UnseededFunction):
 	seeded_type = SeededOperator #@override UnseededFunction
@@ -21,11 +31,9 @@ class Operator(UnseededFunction):
 	@override(UnseededFunction)
 	async def __ainit__(self, priority: int, **kwargs) -> None:
 		assert priority is not Undefined
-
-		ainit = ensure_future(super().__ainit__(**kwargs))
-		aprop = ensure_future(self.__asetattr__('priority', priority))
-		await ainit
-		await aprop
+		async with finish() as f:
+			f.future(super().__ainit__(**kwargs))
+			f.future(self.__asetattr__('priority', priority))
 
 	@property
 	def func_name(self) -> str:
@@ -73,7 +81,10 @@ class MultiArgOperator(Operator):
 
 		last_res = args[0]
 		for arg in args[1:]:
+			# print(type(last_res), type(arg))
 			val = await self.func_for_two_args(last_res, arg)
+			# print(type(last_res), type(arg), type(val), self.func_for_two_args)
+			assert val is not None and val is not NotImplemented, val
 			last_res = await self.scrub(val)
 		return last_res
 
@@ -98,15 +109,17 @@ class SubOperator(MultiArgOperator):
 
 	@staticmethod
 	async def func_for_two_args(l, r):
-		lv = ensure_future(l._avalue)
-		rv = ensure_future(r._avalue)
-		return await _domethod('__sub__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l._avalue)
+			rv = f.future(r._avalue)
+		return await _domethod('__sub__', lv.result(), rv.result())
 
 	@override(MultiArgOperator)
 	async def deriv_w_args(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
-		ld = ensure_future(l._aderiv(du))
-		rd = ensure_future(r._aderiv(du))
-		return await ld - await rd
+		async with finish() as f:
+			ld = f.future(l._aderiv(du))
+			rd = f.future(r._aderiv(du))
+			return await (await ld).__asub__(await rd)
 
 
 	@override(Operator)
@@ -128,22 +141,22 @@ class AddOperator(MultiArgOperator):
 
 	@staticmethod
 	async def func_for_two_args(l, r):
-		assert r is not None
-		lv = ensure_future(l._avalue)
-		rv = ensure_future(r._avalue)
-		return await _domethod('__add__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l._avalue)
+			rv = f.future(r._avalue)
+		return await _domethod('__add__', lv.result(), rv.result())
 
 	@override(MultiArgOperator)
 	async def deriv_w_args(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
-		ld = ensure_future(l._aderiv(du))
-		rd = ensure_future(r._aderiv(du))
-		return await ld + await rd
+		async with finish() as f:
+			ld = f.future(l._aderiv(du))
+			rd = f.future(r._aderiv(du))
+			return await (await ld).__aadd__(await rd)
 
 
 	@override(Operator)
 	def simplify(self, cls, args, kwargs_to_pass):
 		args = list(args)
-		# print(args)
 		if not any(x == 0 for x in args):
 			return None
 		for i in range(len(args)):
@@ -161,15 +174,19 @@ class MulOperator(MultiArgOperator):
 	@override(MultiArgOperator)
 	@staticmethod
 	async def func_for_two_args(l, r): #async
-		lv = ensure_future(l._avalue)
-		rv = ensure_future(r._avalue)
-		return await _domethod('__mul__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l._avalue)
+			rv = f.future(r._avalue)
+		return await _domethod('__mul__', lv.result(), rv.result())
 
 	@override(MultiArgOperator)
 	async def deriv_w_args(self, du: Variable, l: ValuedObj, r: ValuedObj) -> (ValuedObj, Undefined):
-		ld = ensure_future(l._aderiv(du))
-		rd = ensure_future(r._aderiv(du))
-		return await ld * r + l * await rd 
+		async with finish() as f:
+			ld = f.future(l._aderiv(du))
+			rd = f.future(r._aderiv(du))
+			lpart = f.future((await ld).__amul__(r))
+			rpart = f.future((l).__amul__(await rd))
+			return await (await lpart).__aadd__(await rpart)
 
 class TrueDivOperator(MultiArgOperator):
 
@@ -180,15 +197,21 @@ class TrueDivOperator(MultiArgOperator):
 	@override(MultiArgOperator)
 	@staticmethod
 	async def func_for_two_args(l, r):
-		lv = ensure_future(l._avalue)
-		rv = ensure_future(r._avalue)
-		return await _domethod('__truediv__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l._avalue)
+			rv = f.future(r._avalue)
+		return await _domethod('__truediv__', lv.result(), rv.result())
 
 	@override(MultiArgOperator)
 	async def deriv_w_args(self, du: Variable, n: ValuedObj, d: ValuedObj) -> (ValuedObj, Undefined):
-		nd = ensure_future(n._aderiv(du))
-		dd = ensure_future(d._aderiv(du))
-		return (d * await nd - n * await dd) / d ** 2
+		async with finish() as f:
+			nd = f.future(n._aderiv(du))
+			dd = f.future(d._aderiv(du))
+			dnd = f.future(d.__amul__(await nd))
+			ndd = f.future(n.__amul__(await dd))
+			dd2 = f.future(d.__apow__(2))
+			up = f.future((await dnd).__asub__(await ndd))
+			return await up.__adiv__(dd2)
 
 class PowOperator(MultiArgOperator):
 
@@ -199,9 +222,10 @@ class PowOperator(MultiArgOperator):
 	@override(MultiArgOperator)
 	@staticmethod
 	async def func_for_two_args(b, p):
-		bv = ensure_future(b._avalue)
-		pv = ensure_future(p._avalue)
-		return await bv ** await pv
+		async with finish() as f:
+			bv = f.future(b._avalue)
+			pv = f.future(p._avalue)
+		return await _domethod('__pow__', bv.result(), pv.result())
 
 
 	@override(MultiArgOperator)
@@ -219,25 +243,32 @@ class PowOperator(MultiArgOperator):
 		async with finish() as f:
 			bc = f.future(b._aisconst(du))
 			pc = f.future(p._aisconst(du))
-		bc = bc.result()
-		pc = pc.result()
-		if bc and pc:
-			return 0
-
-		if not bc:
-			bd = ensure_future(b._aderiv(du))
-		if not pc:
-			pd = ensure_future(p._aderiv(du))
-			from pymath2.extensions.functions import ln
-			lnb = await ln.__acall__(b)
-
-		if not bc and pc:
-
-			return p * b ** (p - 1) * await bd
-		if bc and not pc:
-			return b ** p * lnb * await pd
-		return b ** p * (await bd * p / b + await pd * lnb)
-
+			bc = await bc
+			pc = await pc
+			if not bc:
+				bd = f.future(b._aderiv(du))
+			if not pc:
+				pd = f.future(p._aderiv(du))
+				from pymath2.extensions.functions import ln
+				lnb = await ln.__acall__(b)
+			if bc and pc:
+				return await self.scrub(0)
+			elif not bc and pc:
+				pm1 = p.__asub__(1)
+				bpm1 = b.__apow__(await pm1)
+				return await (await p.__amul__(await bpm1)).__amul__(await bd)
+				# return p * b ** (p - 1) * await bd
+			elif bc and not pc:
+				assert 0, 'todo'
+				return b ** p * lnb * await pd
+			else:
+				assert not bc and not pc, str(bc) + str(pc)
+				assert 0, 'todo'
+				logger.critical('NO!')
+				raise Exception()
+				quit()
+				# return b ** p * (await bd * p / b + await pd * lnb)
+		assert False #Every case should have been taken care of
 class UnaryOper(Operator):
 	@override(Operator)
 	async def __ainit__(self, **kwargs) -> None:
@@ -268,17 +299,16 @@ class UnaryOper(Operator):
 	@override(Operator)
 	async def deriv_w_args(self, du: Variable, *args: [ValuedObj]) -> (ValuedObj, Undefined):
 		assert len(args) == 1
+		async with finish() as f:
+			name = f.future(self._aname)
+			deriv = f.future(args[0]._aderiv(du))
+			name = await name
+			if name == '-':
+				return -await deriv
+			if name == '+':
+				return +await deriv
 
-		name = ensure_future(self._aname)
-		deriv = ensure_future(args[0]._aderiv(du))
-		name = await name
-
-		if name == '-':
-			return -await deriv
-		if name == '+':
-			return +await deriv
-
-		return await super().deriv_w_args(self, du, *args)
+			return await super().deriv_w_args(self, du, *args)
 
 class InvertedOperator(Operator):
 	is_inverted = True
@@ -288,14 +318,12 @@ class InvertedOperator(Operator):
 		assert 'priority' not in kwargs
 		assert 'req_arg_len' not in kwargs
 
-		anorm = ensure_future(self.__asetattr__('_normal_operator', _normal_operator))
-		ainit = ensure_future(super().__ainit__(name = await _normal_operator._aname,
-						 priority = _normal_operator.priority,
-						 req_arg_len = _normal_operator.req_arg_len,
-						 **kwargs))
-		await anorm
-		await ainit
-
+		async with finish() as f:
+			f.future(self.__asetattr__('_normal_operator', _normal_operator))
+			f.future(super().__ainit__(name = await _normal_operator._aname,
+							 priority = _normal_operator.priority,
+							 req_arg_len = _normal_operator.req_arg_len,
+							 **kwargs))
 	@override(Operator)
 	@property
 	async def _afunc(self) -> Callable:
@@ -357,63 +385,87 @@ async def main():
 
 	# ensure_future: async lambda
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__floordiv__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__floordiv__', lv.result(), rv.result())
 	await opers['__afloordiv__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__mod__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__mod__', lv.result(), rv.result())
 	await opers['__amod__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__matmul__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__matmul__', lv.result(), rv.result())
 	await opers['__amatmul__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__and__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__and__', lv.result(), rv.result())
 	await opers['__aand__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__or__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__or__', lv.result(), rv.result())
 	await opers['__aor__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__xor__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__xor__', lv.result(), rv.result())
 	await opers['__axor__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__lshift__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__lshift__', lv.result(), rv.result())
 	await opers['__alshift__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__rshift__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__rshift__', lv.result(), rv.result())
 	await opers['__arshift__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__lt__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__lt__', lv.result(), rv.result())
 	await opers['__alt__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__gt__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__gt__', lv.result(), rv.result())
 	await opers['__agt__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__le__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__le__', lv.result(), rv.result())
 	await opers['__ale__']._afunc_setter(wrap_func)
 
 	async def wrap_func(l, r):
-		lv, rv = ensure_future(l.value), ensure_future(r.value)
-		return await _domethod('__gt__', await lv, await rv)
+		async with finish() as f:
+			lv = f.future(l.value)
+			rv = f.future(r.value)
+		return await _domethod('__gt__', lv.result(), rv.result())
 	await opers['__agt__']._afunc_setter(wrap_func)
 
 

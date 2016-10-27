@@ -5,6 +5,7 @@ from pymath2 import Undefined, override, final, complete, finish
 from .objs.named_valued_obj import NamedValuedObj
 from .objs.valued_obj import ValuedObj #debug
 from .objs.named_obj import NamedObj #debug
+from .objs.user_obj import UserObj
 from pymath2 import inloop #debug
 from .variable import Variable
 class Derivative(NamedValuedObj):
@@ -30,14 +31,17 @@ class Derivative(NamedValuedObj):
 		async with finish() as f:
 			sv = f.future(self._avalue)
 			ov = f.future(other._avalue)
-		ov = ov.result()
+		return await Derivative._a_get_deriv(sv.result(), ov.result())
+	@staticmethod
+	async def _a_get_deriv(sv, ov):
+		assert inloop()
 		# if not isinstance
 		if not isinstance(ov, Variable):
 			raise TypeError('Can only take deriv with regards to a Variable, not {}'.format(type(ov)))
 		await ov.__asetattr__('_old_value_before_deriv', await ov._avalue)
 		await ov._avalue_deleter()
 
-		ret = await sv.result()._aderiv(ov)
+		ret = await sv._aderiv(ov)
 
 		await ov._avalue_setter(ov._old_value_before_deriv)
 		await ov.__adelattr__('_old_value_before_deriv')
@@ -49,8 +53,8 @@ class Derivative(NamedValuedObj):
 		return self._aname
 
 @final
-class UserDerivative(Derivative):
-	@override(Derivative)
+class UserDerivative(UserObj, Derivative):
+	@override(UserObj, Derivative)
 	async def __ainit__(self, value):
 		assert inloop()
 		await super().__ainit__(value = value)

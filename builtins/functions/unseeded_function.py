@@ -100,8 +100,8 @@ class UnseededFunction(NamedObj):
 		name = ensure_future(self._aname)
 		return '{}({!r}, {}, {}, {!r}, {!r}, {!r})'.format(
 				self.__class__.__qualname__,
-				self.get_asyncattr(await func),
-				self.get_asyncattr(await name),
+				await self.get_asyncattr(await func),
+				await self.get_asyncattr(await name),
 				self.args_str,
 				self.body_str,
 				self.req_arg_len,
